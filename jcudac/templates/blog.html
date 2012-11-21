@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link type="text/css" rel="stylesheet" href="/static/main.css" />
+
+    <title>CS 253 Blog</title>
+  </head>
+
+  <body>
+    <a href="/blog" class="main-title">
+      Blog
+    </a>
+
+    </div>
+   <div id="content">
+   {% for blog in blogs %}
+     <div class="post">
+      <div class="post-heading">
+        <div class="post-title">
+        {{blog.subject}}t
+        </div>
+
+        <div class="post-date">
+        {{blog.date}}t
+        </div>
+      </div>
+
+      <div class="post-content">
+      {{blog.content}}t
+      </div>
+    </div>
+  </div>
+  <br><br>
+  {% endfor %}
+  </body>
+</html>
