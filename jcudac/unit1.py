@@ -27,10 +27,8 @@ class MainPage(webapp2.RequestHandler):
       self.response.write(Rot13Form %{"text":text})
       
   def get(self):
-      #self.response.headers['Content-Type'] = 'text/plain'
       self.response.write(form)
       
   def post(self):
-      #self.response.headers['Content-Type'] = 'text/plain'
       self.response.write("Thanks for that totally valid day")
 
