@@ -63,13 +63,6 @@ class blog(webapp2.RequestHandler):
         
       self.response.write(frontpage%{'subject':subject,'content':content})
 
-##  def render_blog(self):
-##      blogs = db.GqlQuery('SElECT * FROM BlogData ORDER BY created DESC ')
-##      self.render('/blog.html', blogs=blogs)
-##
-##  def get(self):
-##      self.render_blog()
-
 class newpost(webapp2.RequestHandler):
   def get(self):
     self.response.write(new_post%{"subject":'',"content":'',"error":''})
@@ -83,12 +76,9 @@ class newpost(webapp2.RequestHandler):
     else:
       error = 'Please enter both fields'
       self.response.write(new_post%{"subject":escape_html(self.request.get('subject')),"content":escape_html(self.request.get('content')),"error":error})
-  
     
 class blogentry(webapp2.RequestHandler):
   def get(self, id):
     self.response.write('blog entry')
-    #self.response.write(BlogData.get_by_id(int(id)))
-    #self.response.write(id)
     data = BlogData.get_by_id(int(id))
     self.response.write(data.subject)
