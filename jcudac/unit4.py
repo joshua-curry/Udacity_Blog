@@ -142,6 +142,26 @@ class blog_sign_up(webapp2.RequestHandler):
       self.write_form()
 
 class BlogWelcome(webapp2.RequestHandler):
+  def make_salt(self):
+    return ''.join(random.choice(string.letters) for x in xrange(5))
+
+  def make_pw_hash(self, name, pw, salt=''):
+     if salt == '':
+       salt = self.make_salt()
+     h = hashlib.sha256(name + pw + salt).hexdigest()
+     return '%s|%s' % (h, salt)
+
+  def valid_pw(self, name, pw):
+      password = ''
+      user = db.GqlQuery('Select * from BlogUsers where username = :1', name)
+      self.response.write(user.get())
+      for e in user:
+          password = e.password
+      
+      salt = password.split('|')[1]
+      if self.make_pw_hash(name, pw, salt) == password:
+          return True
+
   def Validate_Username(self, username):
       USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
       return USER_RE.match(username)
@@ -158,18 +178,29 @@ class BlogWelcome(webapp2.RequestHandler):
     return None
     
   def get(self):
+	data = self.request.cookies.get('name',0).split('|')[0]
+	name = BlogUsers.get_by_id(int(data))
+	self.response.write('Welcome ' + name.username)
+	#user = db.GqlQuery('Select * from BlogUsers where username = :1', self.request.cookies.get('name',0))
+	#if user:
+          #data = BlogUsers.get_by_id(int(name))
+		#self.response.write('Welcome '+self.request.cookies.get('name',0))
+	#if user:
+        #data = BlogUsers.get_by_id(int(name))
+		#self.response.write('Welcome '+self.request.cookies.get('name',0))
       #if self.Validate_Username(self.request.get('username')):
       #  self.response.write('Welcome '+ self.request.get('username'))
       #else:
       #  self.redirect("blog/signup", permanent=False)
-      tempname = self.request.cookies.get('name',0)
-      name = tempname[0:tempname.find('|')]
+      #tempname = self.request.cookies.get('name',0)
+	#user = db.GqlQuery('Select * from BlogUsers where username = :1', self.request.cookies.get('name',0))
+      #name = tempname[0:tempname.find('|')]
       #name = self.check_secure_val(self.request.cookies.get('name',0))
       #self.response.write(self.request.cookies.get('name',0))
       #self.response.write(name)
-      if name:
-          data = BlogUsers.get_by_id(int(name))
-          self.response.write('Welcome '+data.username)
+    #if name:
+        #data = BlogUsers.get_by_id(int(name))
+		#self.response.write('Welcome '+self.request.cookies.get('name',0))
       #else:
       #    self.redirect("/signup", permanent=False)
       #self.response.write('Welcome test')
