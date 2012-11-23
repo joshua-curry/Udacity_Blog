@@ -40,9 +40,7 @@ class Rot13(webapp2.RequestHandler):
       return s
     
   def write_form(self, text=""):
-      #text = escape_html(self.request.get('text'))
       text = self.request.get('text')
-      #self.response.write('text: ' + str(len(text)))
       text = self.rot13ify(text)
       text = self.escape_html(text)
       self.response.write(Rot13Form %{"text":text})
@@ -105,7 +103,6 @@ class Sign_up(webapp2.RequestHandler):
       EMAIL_RE = re.compile(r"^[\S]+@[\S]+\.[\S]+$")
       return EMAIL_RE.match(email)
       
-  #def write_form(self, UserError='', PassError='', Pass2Error='', EmailError=''):
   def write_form(self):
       UserError = ''
       PassError = ''
