@@ -155,7 +155,7 @@ class BlogWelcome(webapp2.RequestHandler):
 
 
 #####################
-##Unit 4 Homework 1##
+##Unit 4 Homework 2##
 #####################
 
 LoginForm='''
@@ -233,4 +233,12 @@ class BlogLogin(webapp2.RequestHandler):
 
 	def post(self):
 		self.write_form()
+		
+#####################
+##Unit 4 Homework 2##
+#####################
 
+class BlogLogout(webapp2.RequestHandler):
+	def get(self):
+		self.response.headers.add_header('Set-Cookie', 'name=; Path=/')
+		self.redirect('/blog/signup')
