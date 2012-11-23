@@ -3,7 +3,6 @@
 import webapp2
 import re
 
-import logic
 import unit1
 import unit2
 import unit3
@@ -18,4 +17,5 @@ app = webapp2.WSGIApplication([(r'/', unit1.MainPage),
                                (r'/blog/(\d+)', unit3.blogentry),
                                ('/blog/signup', unit4.blog_sign_up),
                                ('/blog/welcome', unit4.BlogWelcome),
-                               ('/blog/login', unit4.BlogLogin)],debug=True)
+                               ('/blog/login', unit4.BlogLogin)
+							   ('/blog/logout', unit4.BlogLogout)],debug=True)
