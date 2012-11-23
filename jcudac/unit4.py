@@ -52,17 +52,6 @@ class BlogUsers(db.Model):
     created = db.DateTimeProperty(auto_now_add = True)
 
 class blog_sign_up(webapp2.RequestHandler):
-  def hash_str(self,s):
-    return hashlib.md5(s).hexdigest()
-
-  def make_secure_val(self,s):
-    return "%s|%s" % (s, self.hash_str(s))
-
-  def check_secure_val(self,h):
-    if make_secure_val(h[0:h.find(',')]) == h:
-        return h[0:h.find(',')]
-    return None
-
   def make_salt(self):
     return ''.join(random.choice(string.letters) for x in xrange(5))
 
@@ -97,7 +86,6 @@ class blog_sign_up(webapp2.RequestHandler):
       EMAIL_RE = re.compile(r"^[\S]+@[\S]+\.[\S]+$")
       return EMAIL_RE.match(email)
       
-  #def write_form(self, UserError='', PassError='', Pass2Error='', EmailError=''):
   def write_form(self):
       UserError = ''
       PassError = ''
@@ -107,7 +95,7 @@ class blog_sign_up(webapp2.RequestHandler):
       email = self.request.get('email')
       
       UserError = self.Validate_Username(self.request.get('username'))
-                               
+
       if not self.Validate_Password1(self.request.get('password')):
         PassError = 'Please enter a vaild password'
 
@@ -127,17 +115,10 @@ class blog_sign_up(webapp2.RequestHandler):
         name = self.make_secure_val(str(userdata.key().id()))
         self.response.headers.add_header('Set-Cookie', 'name=%s; Path=/' % name)
         self.redirect("/blog/welcome", permanent=False)
+		
   def get(self):
       self.response.write(SignUpForm %{"UserError": '', "PassError": '', "Pass2Error": '', "EmailError": '', "user": '', "email": ''})
-      #username = 'test2'
-      #user = db.GqlQuery('Select * from BlogUsers where username = :1', username)
-      #self.response.write(user.get())
-      #for e in user:
-      #    self.response.write(e.username)
-      #if user:
-      #    self.response.write('That username already exisits')
-      #else:
-      #    self.response.write('hmm')
+
   def post(self):
       self.write_form()
 
@@ -165,47 +146,12 @@ class BlogWelcome(webapp2.RequestHandler):
   def Validate_Username(self, username):
       USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
       return USER_RE.match(username)
-
-  def hash_str(self,s):
-    return hashlib.md5(s).hexdigest()
-
-  def make_secure_val(self,s):
-    return "%s|%s" % (s, self.hash_str(s))
-
-  def check_secure_val(self,h):
-    if self.make_secure_val(h[0:h.find('|')]) == h:
-        return h[0:h.find('|')]
-    return None
     
   def get(self):
 	data = self.request.cookies.get('name',0).split('|')[0]
 	name = BlogUsers.get_by_id(int(data))
 	self.response.write('Welcome ' + name.username)
-	#user = db.GqlQuery('Select * from BlogUsers where username = :1', self.request.cookies.get('name',0))
-	#if user:
-          #data = BlogUsers.get_by_id(int(name))
-		#self.response.write('Welcome '+self.request.cookies.get('name',0))
-	#if user:
-        #data = BlogUsers.get_by_id(int(name))
-		#self.response.write('Welcome '+self.request.cookies.get('name',0))
-      #if self.Validate_Username(self.request.get('username')):
-      #  self.response.write('Welcome '+ self.request.get('username'))
-      #else:
-      #  self.redirect("blog/signup", permanent=False)
-      #tempname = self.request.cookies.get('name',0)
-	#user = db.GqlQuery('Select * from BlogUsers where username = :1', self.request.cookies.get('name',0))
-      #name = tempname[0:tempname.find('|')]
-      #name = self.check_secure_val(self.request.cookies.get('name',0))
-      #self.response.write(self.request.cookies.get('name',0))
-      #self.response.write(name)
-    #if name:
-        #data = BlogUsers.get_by_id(int(name))
-		#self.response.write('Welcome '+self.request.cookies.get('name',0))
-      #else:
-      #    self.redirect("/signup", permanent=False)
-      #self.response.write('Welcome test')
 
-      ##need to convert logins from creation from md5 to sha256 to pass into the welcome screen validation
 
 
 #####################
@@ -251,10 +197,6 @@ class BlogLogin(webapp2.RequestHandler):
           return True
 
   def Validate_Username(self, username):
-      #USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
-      #if not USER_RE.match(username):
-      #  return 'Please enter a vaild username'
-
       user = db.GqlQuery('Select * from BlogUsers where username = :1', username)
       if not user.get():
         return 'That Username does not exist'
@@ -267,8 +209,6 @@ class BlogLogin(webapp2.RequestHandler):
         return 'Incorrect password'
       return''
 
-      
-  #def write_form(self, UserError='', PassError='', Pass2Error='', EmailError=''):
   def write_form(self):
       UserError = ''
       PassError = ''
@@ -276,9 +216,7 @@ class BlogLogin(webapp2.RequestHandler):
       user = self.request.get('username')
       
       UserError = self.Validate_Username(self.request.get('username'))
-      #if usererror = '':
-          
-                               
+
       if not self.valid_pw(self.request.get('username'),self.request.get('password')):
         PassError = 'Please enter a vaild password'
 
@@ -287,23 +225,12 @@ class BlogLogin(webapp2.RequestHandler):
       else:
         username =self.request.get('username')
         password = self.request.get('password')
-        #userdata = BlogUsers(username = username, password = self.make_pw_hash(username, password))
-        #userdata.put()
-        #name = self.make_secure_val(str(userdata.key().id()))
         self.response.headers.add_header('Set-Cookie', 'name=%s; Path=/' % str(username))
         self.redirect("/blog/welcome", permanent=False)
         
   def get(self):
       self.response.write(LoginForm %{"UserError": '', "PassError": '', "user": ''})
-      #username = 'test3'
-      #user = db.GqlQuery('Select * from BlogUsers where username = :1', username)
-      #self.response.write(user.get())
-      #for e in user:
-      #    self.response.write(e.password)
-      #if user:
-      #    self.response.write('That username already exisits')
-      #else:
-      #    self.response.write('hmm')
+
   def post(self):
       self.write_form()
 
