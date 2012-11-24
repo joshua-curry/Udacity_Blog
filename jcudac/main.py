@@ -20,4 +20,5 @@ app = webapp2.WSGIApplication([(r'/', unit1.MainPage),
                                ('/blog/welcome', unit4.BlogWelcome),
                                ('/blog/login', unit4.BlogLogin),
 							   ('/blog/logout', unit4.BlogLogout),
-							   (r'/blog/.json', unit5.BlogWithJSON)],debug=True)
+							   (r'/blog/.json', unit5.BlogWithJSON),
+							   (r'/blog/(\d+).json', unit5.BlogEntryWithJSON)],debug=True)

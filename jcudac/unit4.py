@@ -61,6 +61,17 @@ class blog_sign_up(webapp2.RequestHandler):
 		h = hashlib.sha256(name + pw + salt).hexdigest()
 		return '%s|%s' % (h, salt)
 
+	def hash_str(self,s):
+		return hashlib.md5(s).hexdigest()
+
+	def make_secure_val(self,s):
+		return "%s|%s" % (s, self.hash_str(s))
+
+	def check_secure_val(self,h):
+		if make_secure_val(h[0:h.find(',')]) == h:
+			return h[0:h.find(',')]
+		return None
+
 	def Validate_Username(self, username):
 		USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
 		if not USER_RE.match(username):

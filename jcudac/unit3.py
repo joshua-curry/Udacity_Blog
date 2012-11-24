@@ -80,5 +80,8 @@ class newpost(webapp2.RequestHandler):
 class blogentry(webapp2.RequestHandler):
 	def get(self, id):
 		self.response.write('blog entry')
+		self.response.write('<br>')
 		data = BlogData.get_by_id(int(id))
 		self.response.write(data.subject)
+		self.response.write('<br>')
+		self.response.write(data.content)

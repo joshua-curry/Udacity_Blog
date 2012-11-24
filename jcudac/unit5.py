@@ -13,10 +13,10 @@ class BlogData(db.Model):
 class BlogWithJSON(webapp2.RequestHandler):
 	def get(self):
 		data = db.GqlQuery('SELECT * FROM BlogData order by created desc')
-		jsonString = ''
+		jsonString = '['
 		for entry in data:
-			if jsonString == '':
-				jsonString = '{'
+			if jsonString == '[':
+				jsonString += '{'
 			else:
 				jsonString += ', {'
 				
@@ -35,5 +35,17 @@ class BlogWithJSON(webapp2.RequestHandler):
 			else:
 				jsonString += '"}'
 				#content = ''
-        
+		jsonString += ']'
+		self.response.headers['Content-Type'] = 'application/json'
+		self.response.write(jsonString)
+		
+		
+		
+class BlogEntryWithJSON(webapp2.RequestHandler):
+	def get(self, id):
+		jsonString = '{"subject": "'
+		data = BlogData.get_by_id(int(id))
+		jsonString += data.subject + '", "content": "'
+		jsonString += data.content + '"}'
+		self.response.headers['Content-Type'] = 'application/json'
 		self.response.write(jsonString)
