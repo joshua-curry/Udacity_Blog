@@ -1,5 +1,7 @@
 import webapp2
 import re
+import time
+from google.appengine.api import memcache
 from google.appengine.ext import db
 
 #####################
@@ -31,6 +33,8 @@ frontpage='''
 		<body>
 			<div> %(subject)s </div>
 			<div> %(content)s </div>
+			<br>
+			<div>Queried %(seconds)s seconds ago</div>
 		</body>
 	</html>
 	'''
@@ -46,10 +50,17 @@ class BlogData(db.Model):
 	subject = db.StringProperty(required = True)
 	content = db.TextProperty(required = True)
 	created = db.DateTimeProperty(auto_now_add = True)
-    
+	
 class blog(webapp2.RequestHandler):
 	def get(self):
-		data = db.GqlQuery('SELECT * FROM BlogData order by created desc')
+		seconds = 0
+		key = 'main'
+		data = memcache.get(key)
+		if data is None:
+			data = db.GqlQuery('SELECT * FROM BlogData order by created desc')
+			memcache.set('MainTime',time.time())
+			memcache.set(key, data)
+			
 		for entry in data:
 			if entry.subject:
 				subject = entry.subject
@@ -60,8 +71,8 @@ class blog(webapp2.RequestHandler):
 				content = entry.content
 			else:
 				content = ''
-        
-		self.response.write(frontpage%{'subject':subject,'content':content})
+		seconds = int(time.time() - memcache.get('MainTime'))
+		self.response.write(frontpage%{'subject':subject,'content':content,'seconds':seconds})
 
 class newpost(webapp2.RequestHandler):
 	def get(self):
@@ -71,6 +82,7 @@ class newpost(webapp2.RequestHandler):
 		if self.request.get('subject') != '' and self.request.get('content') != '':
 			data = BlogData(subject = escape_html(self.request.get('subject')), content = escape_html(self.request.get('content')))
 			data.put()
+			memcache.delete('main')
 			dataid = data.key().id()
 			self.redirect('/blog/' + str(dataid))
 		else:
@@ -81,7 +93,16 @@ class blogentry(webapp2.RequestHandler):
 	def get(self, id):
 		self.response.write('blog entry')
 		self.response.write('<br>')
-		data = BlogData.get_by_id(int(id))
+		if memcache.get('permalink') <> id:
+			data = BlogData.get_by_id(int(id))
+			memcache.set('permalink', id)
+			memcache.set('PermaTime',time.time())
+			memcache.set('perma', data)
+		else:
+			data = memcache.get('perma')
+		#data = BlogData.get_by_id(int(id))
 		self.response.write(data.subject)
 		self.response.write('<br>')
 		self.response.write(data.content)
+		self.response.write('<br>')
+		self.response.write('Queried ' + str(int(time.time() - memcache.get('PermaTime'))) + ' seconds ago')
