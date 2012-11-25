@@ -4,8 +4,57 @@ import time
 from google.appengine.api import memcache
 from google.appengine.ext import db
 
+LoggedInHeader='''
+	<html>
+		<head>
+			<style>
+				.right
+				{
+				position:absolute;
+				right:0px;
+				width:300px;
+				background-color:#b0e0e6;
+				}
+			</style>
+		</head>
+		<body>
+			<div class="right">
+				<a href=#>edit</a> | <a href=#>logout</a>
+			</div>
+			<br>
+			<br>
+			<br>
+		</body>
+	</html>
+	'''
+
+LoggedOutHeader='''
+	<html>
+		<head>
+			<style>
+				.right
+				{
+				position:absolute;
+				right:0px;
+				width:300px;
+				background-color:#b0e0e6;
+				}
+			</style>
+		</head>
+		<body>
+			<div class="right">
+				<a href="../wiki/login">login</a>
+			</div>
+			<br>
+			<br>
+			<br>
+		</body>
+	</html>
+	'''
+
 class WikiMain(webapp2.RequestHandler):
 	def get(self):
+		self.response.write(LoggedOutHeader)
 		self.response.write('Welcome to my wiki')
 	
 WikiSignUpForm='''
