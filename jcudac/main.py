@@ -8,6 +8,7 @@ import unit2
 import unit3
 import unit4
 import unit5
+import unit6
 
 app = webapp2.WSGIApplication([(r'/', unit1.MainPage),
                                (r'/Unit2/rot13', unit2.Rot13),
@@ -21,4 +22,5 @@ app = webapp2.WSGIApplication([(r'/', unit1.MainPage),
                                ('/blog/login', unit4.BlogLogin),
 							   ('/blog/logout', unit4.BlogLogout),
 							   (r'/blog/.json', unit5.BlogWithJSON),
-							   (r'/blog/(\d+).json', unit5.BlogEntryWithJSON)],debug=True)
+							   (r'/blog/(\d+).json', unit5.BlogEntryWithJSON),
+							   ('/blog/flush', unit6.BlogCacheFlush)],debug=True)
