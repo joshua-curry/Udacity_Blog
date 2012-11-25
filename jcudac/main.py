@@ -9,7 +9,9 @@ import unit3
 import unit4
 import unit5
 import unit6
+import wiki
 
+PAGE_RE = r'(/(?:[a-zA-Z0-9_-]+/?)*)'
 app = webapp2.WSGIApplication([(r'/', unit1.MainPage),
                                (r'/Unit2/rot13', unit2.Rot13),
                                (r'/signup',unit2.Sign_up),
@@ -23,4 +25,11 @@ app = webapp2.WSGIApplication([(r'/', unit1.MainPage),
 							   ('/blog/logout', unit4.BlogLogout),
 							   (r'/blog/.json', unit5.BlogWithJSON),
 							   (r'/blog/(\d+).json', unit5.BlogEntryWithJSON),
-							   ('/blog/flush', unit6.BlogCacheFlush)],debug=True)
+							   ('/blog/flush', unit6.BlogCacheFlush),
+							   ('/wiki', wiki.WikiMain),
+							   ('/wiki/signup', wiki.Signup),
+                               ('/wiki/login', wiki.Login),
+                               ('/wiki/logout', wiki.Logout)#,
+                               #('/wiki/_edit/' + PAGE_RE, wiki.EditPage),
+                               #('/wiki/' + PAGE_RE, wiki.WikiPage)
+							   ],debug=True)
