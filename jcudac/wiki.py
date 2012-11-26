@@ -1,9 +1,17 @@
 import webapp2
 import re
 import time
+import random
+import string
+import hashlib
 from google.appengine.api import memcache
 from google.appengine.ext import db
 
+def LoggedIn(self):
+	if self.request.cookies.get('name',0):
+		return True
+	return False
+	
 LoggedInHeader='''
 	<html>
 		<head>
@@ -12,14 +20,13 @@ LoggedInHeader='''
 				{
 				position:absolute;
 				right:0px;
-				width:300px;
-				background-color:#b0e0e6;
+				width:100px;
 				}
 			</style>
 		</head>
 		<body>
 			<div class="right">
-				<a href=#>edit</a> | <a href=#>logout</a>
+				<a href="%(EditLink)s">edit</a> | <a href="..%(LogoutPath)s">logout</a>
 			</div>
 			<br>
 			<br>
@@ -36,8 +43,7 @@ LoggedOutHeader='''
 				{
 				position:absolute;
 				right:0px;
-				width:300px;
-				background-color:#b0e0e6;
+				width:100px;
 				}
 			</style>
 		</head>
@@ -54,7 +60,10 @@ LoggedOutHeader='''
 
 class WikiMain(webapp2.RequestHandler):
 	def get(self):
-		self.response.write(LoggedOutHeader)
+		if LoggedIn(self):
+			self.response.write(LoggedInHeader%{"EditLink": '#', "LogoutPath": '/wiki/logout'})
+		else:
+			self.response.write(LoggedOutHeader)
 		self.response.write('Welcome to my wiki')
 	
 WikiSignUpForm='''
@@ -89,6 +98,12 @@ class WikiUsers(db.Model):
     password = db.StringProperty(required = True)
     created = db.DateTimeProperty(auto_now_add = True)
 
+class WikiPages(db.Model):
+	PageTitle = db.StringProperty(required = True)
+	PageContent = db.StringProperty(required = True)
+	created = db.DateTimeProperty(auto_now_add = True)
+
+	
 class Signup(webapp2.RequestHandler):
 	def make_salt(self):
 		return ''.join(random.choice(string.letters) for x in xrange(5))
@@ -171,7 +186,6 @@ class Signup(webapp2.RequestHandler):
 	def post(self):
 		self.write_form()
 		
-		
 WikiLoginForm='''
 	<p>Wiki Login!</p>
 	<form method = "post">
@@ -252,3 +266,49 @@ class Logout(webapp2.RequestHandler):
 	def get(self):
 		self.response.headers.add_header('Set-Cookie', 'name=; Path=/')
 		self.redirect('/wiki')
+		
+class WikiPage(webapp2.RequestHandler):
+	def get(self,id):
+		if LoggedIn(self):
+			self.response.write(LoggedInHeader%{"EditLink": '/wiki/_edit/'+id, "LogoutPath": '/wiki/logout'})
+		else:
+			self.response.write(LoggedOutHeader)
+		page = db.GqlQuery('Select * from WikiPages where PageTitle = :1 order by created DESC', id)
+		if page.get():
+			for e in page.run(limit = 1):
+				self.response.write(e.PageContent)
+		else:
+			if LoggedIn(self):
+				self.redirect('_edit/'+id)
+			else:
+				self.redirect('/wiki/login')
+			
+EditForm='''
+	<form method = "post">
+		<textarea name = "content">%(text)s</textarea>
+		</br>
+		<input type = "Submit">
+	'''
+			
+class EditPage(webapp2.RequestHandler):
+	def get(self,id):
+		if LoggedIn(self):
+			self.response.write(LoggedInHeader%{"EditLink": '/wiki/_edit/'+id, "LogoutPath": '/logout'})
+		else:
+			self.redirect('/wiki/login')
+		page = db.GqlQuery('Select * from WikiPages where PageTitle = :1 order by created DESC', id)
+		if page.get():
+			for e in page.run(limit = 1):
+				self.response.write(EditForm %{"text": e.PageContent})
+		else:
+			self.response.write(EditForm %{"text": ''})
+			
+	def post(self,id):
+		page = WikiPages(PageTitle = id, PageContent = self.request.get('content'))
+		page.put()
+		self.redirect("/wiki/" + id, permanent=False)
+		
+class WikiInit(webapp2.RequestHandler):
+	def get(self):
+		page = WikiPages(PageTitle = '/wiki/first/init', PageContent = '/wiki/first/init')
+		page.put()
