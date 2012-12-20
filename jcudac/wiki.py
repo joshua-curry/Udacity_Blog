@@ -116,10 +116,7 @@ WikiSignUpForm='''
             <div class="navbar-content">
               <ul class="nav">
                 <li class="active">
-                  <a href="#">Login</a> 
-                </li>
-                <li class="pull-right">
-                  <a href="#">Edit</a> 
+                  <a href="../wiki/login">Login</a> 
                 </li>
               </ul>
             </div>
@@ -196,11 +193,11 @@ LandingPage='''
       <div class="navbar navbar-fixed-top navbar-inverse">
         <div class="navbar-inner">
           <div class="container">
-            <a class="brand" href="#">CurryWIKI</a>
+            <a class="brand" href="../wiki">CurryWIKI</a>
             <div class="navbar-content">
               <ul class="nav">
                 <li class="active">
-                  <a href="#">Login</a> 
+                  <a href="../wiki/login">Login</a> 
                 </li>
               </ul>
             </div>
@@ -208,8 +205,15 @@ LandingPage='''
         </div>
       </div>
     </div>
-    <div class="hero-unit">
+    <div class="hero-unit hidden-phone">
       <h1>CurryWIKI</h1>
+      <p>The Best WIKI On The Internet If You Aren't Really Interested In Information</p>
+      <p>
+        <a class="btn btn-large btn-info" href="../wiki/signup"><span class="btn-label">Sign Up Today!</span></a> 
+      </p>
+    </div>
+	<div class="hero-unit visible-phone">
+      <h3>CurryWIKI</h3>
       <p>The Best WIKI On The Internet If You Aren't Really Interested In Information</p>
       <p>
         <a class="btn btn-large btn-info" href="../wiki/signup"><span class="btn-label">Sign Up Today!</span></a> 
@@ -358,6 +362,66 @@ WikiLoginForm='''
 		<input type = "Submit">
 	</form>
 	'''
+
+WikiLoginForm='''
+<!doctype html>
+<html>
+  
+  <head>
+    <title>Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+    <link rel="stylesheet" href="https://app.divshot.com/css/divshot-util.css">
+    <link rel="stylesheet" href="https://app.divshot.com/themes/slate/bootstrap.min.css">
+    <link rel="stylesheet" href="https://app.divshot.com/css/bootstrap-responsive.css">
+    <script src="https://app.divshot.com/js/jquery.min.js"></script>
+  </head>
+  
+  <body>
+    <div class="container">
+      <div class="navbar navbar-fixed-top navbar-inverse">
+        <div class="navbar-inner">
+          <div class="container">
+            <a class="brand" href="../wiki">CurryWIKI</a>
+            <div class="navbar-content">
+              <ul class="nav"></ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <form class="form-horizontal pull-right" method = "post">
+        <div class="row">
+          <div class="span3"></div>
+          <div class="span6">
+            <div class="control-group">
+              <label class="control-label" for="username">Username</label>
+              <div class="controls">
+                <input type="text" placeholder="username" name="username" id="username"
+                class="input-large" value = '%(user)s'>
+				<span style = "color: red">%(UserError)s</span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label" for="Password">Password</label>
+              <div class="controls">
+                <input type="text" placeholder="Password" name="password" id="Password"
+                class="input-large">
+				<span style = "color: red">%(PassError)s</span>
+              </div>
+            </div>
+            <div class="form-actions">
+              <input class="btn btn-success" type="submit">
+            </div>
+          </div>
+          <div class="span3"></div>
+        </div>
+      </form>
+    </div>
+    <script src="https://app.divshot.com/js/bootstrap.min.js"></script>
+  </body>
+
+</html>
+'''
 	
 class Login(webapp2.RequestHandler):
 	def make_salt(self):
@@ -423,16 +487,65 @@ class Logout(webapp2.RequestHandler):
 		self.response.headers.add_header('Set-Cookie', 'name=; Path=/')
 		self.redirect('/wiki')
 		
+WikiPages='''
+<!doctype html>
+<html>
+  
+  <head>
+    <title>WikiPage</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+    <link rel="stylesheet" href="https://app.divshot.com/css/divshot-util.css">
+    <link rel="stylesheet" href="https://app.divshot.com/themes/slate/bootstrap.min.css">
+    <link rel="stylesheet" href="https://app.divshot.com/css/bootstrap-responsive.css">
+    <script src="https://app.divshot.com/js/jquery.min.js"></script>
+  </head>
+  
+  <body>
+    <div class="container">
+      <div class="navbar navbar-fixed-top navbar-inverse">
+        <div class="navbar-inner">
+          <div class="container">
+            <a class="brand" href="#">CurryWIKI</a>
+            <div class="navbar-content">
+              <ul class="nav">
+                <li class="active">
+                  <a href="%(editlink)s">Edit</a> 
+                </li>
+                <li class="pull-right">
+                  <a href="%(logout)s">Logout</a> 
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="container">
+        <div class="well">
+          <h1>%(title)s</h1>
+          <div class="well">
+            <p>%(text)s</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="https://app.divshot.com/js/bootstrap.min.js"></script>
+  </body>
+
+</html>
+'''
+		
 class WikiPage(webapp2.RequestHandler):
 	def get(self,id):
-		if LoggedIn(self):
-			self.response.write(LoggedInHeader%{"EditLink": '/wiki/_edit/'+id, "LogoutPath": '/wiki/logout'})
-		else:
-			self.response.write(LoggedOutHeader)
+		# if LoggedIn(self):
+			# self.response.write(LoggedInHeader%{"EditLink": '/wiki/_edit/'+id, "LogoutPath": '/wiki/logout'})
+		# else:
+			# self.response.write(LoggedOutHeader)
 		page = db.GqlQuery('Select * from WikiPages where PageTitle = :1 order by created DESC', id)
 		if page.get():
 			for e in page.run(limit = 1):
-				self.response.write(e.PageContent)
+				#self.response.write(e.PageContent)
+				self.response.write(WikiPages %{"title":id[0].upper() + id[1:],"text":e.PageContent,"editlink":'/wiki/_edit/'+id,"logout":'/wiki/logout'})
 		else:
 			if LoggedIn(self):
 				self.redirect('_edit/'+id)
@@ -460,7 +573,7 @@ class EditPage(webapp2.RequestHandler):
 			self.response.write(EditForm %{"text": ''})
 			
 	def post(self,id):
-		page = WikiPages(PageTitle = id, PageContent = self.request.get('content'))
+		page = WikiPages(PageTitle = id, PageContent = self.request.get("content"))
 		page.put()
 		self.redirect("/wiki/" + id, permanent=False)
 		
