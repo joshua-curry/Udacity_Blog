@@ -260,7 +260,7 @@ class WikiUsers(db.Model):
 
 class WikiPages(db.Model):
 	PageTitle = db.StringProperty(required = True)
-	PageContent = db.StringProperty(required = True)
+	PageContent = db.TextProperty(required = True)
 	created = db.DateTimeProperty(auto_now_add = True)
 
 	
@@ -487,7 +487,7 @@ class Logout(webapp2.RequestHandler):
 		self.response.headers.add_header('Set-Cookie', 'name=; Path=/')
 		self.redirect('/wiki')
 		
-WikiPages='''
+WikiPagesHTML='''
 <!doctype html>
 <html>
   
@@ -545,7 +545,7 @@ class WikiPage(webapp2.RequestHandler):
 		if page.get():
 			for e in page.run(limit = 1):
 				#self.response.write(e.PageContent)
-				self.response.write(WikiPages %{"title":id[0].upper() + id[1:],"text":e.PageContent,"editlink":'/wiki/_edit/'+id,"logout":'/wiki/logout'})
+				self.response.write(WikiPagesHTML %{"title":id[0].upper() + id[1:],"text":e.PageContent,"editlink":'/wiki/_edit/'+id,"logout":'/wiki/logout'})
 		else:
 			if LoggedIn(self):
 				self.redirect('_edit/'+id)
@@ -573,7 +573,7 @@ class EditPage(webapp2.RequestHandler):
 			self.response.write(EditForm %{"text": ''})
 			
 	def post(self,id):
-		page = WikiPages(PageTitle = id, PageContent = self.request.get("content"))
+		page = WikiPages(PageTitle = id, PageContent = self.request.get("content").replace('\n','<br>'))
 		page.put()
 		self.redirect("/wiki/" + id, permanent=False)
 		
