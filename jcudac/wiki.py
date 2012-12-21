@@ -276,11 +276,72 @@ WikiPagesHTML='''
 	</html>
 	'''
 
-EditForm='''
+EditForm2='''
 	<form method = "post">
 		<textarea name = "content">%(text)s</textarea>
 		</br>
 		<input type = "Submit">
+	'''
+
+EditForm='''
+	<!doctype html>
+	<html>
+	  
+	  <head>
+	    <title>EditPage</title>
+	    <meta name="viewport" content="width=device-width, initial-scale=1">
+	    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+	    <link rel="stylesheet" href="https://app.divshot.com/css/divshot-util.css">
+	    <link rel="stylesheet" href="https://app.divshot.com/themes/slate/bootstrap.min.css">
+	    <link rel="stylesheet" href="https://app.divshot.com/css/bootstrap-responsive.css">
+	    <script src="https://app.divshot.com/js/jquery.min.js"></script>
+	  </head>
+	  
+	  <body>
+	    <div class="container">
+	      <div class="navbar navbar-fixed-top navbar-inverse">
+	        <div class="navbar-inner">
+	          <div class="container">
+	            <a class="brand" href="../wiki">CurryWIKI</a>
+	            <div class="navbar-content">
+	              <ul class="nav">
+	                <li class="active">
+	                  <a href="%(editlink)s">Edit</a> 
+	                </li>
+	                <li class="pull-right">
+	                  <a href="%(logout)s">Logout</a> 
+	                </li>
+	              </ul>
+	            </div>
+	          </div>
+	        </div>
+	      </div>
+	      <div class="container">
+	        <div class="well">
+	          <h1>%(title)s</h1>
+	          <div class="well">
+	            <form class="form-vertical" method = "post">
+	              <div class="control-group">
+	                <label class="control-label">
+	                  <br> 
+	                </label>
+	                <div class="controls">
+	                  <textarea name = "content" rows="15" style="margin: 0px 0px 9px; width: 1073px; height: 348px;">%(content)s</textarea>
+	                </div>
+	              </div>
+	            <div class="form-actions">
+	              <input class="btn btn-success" type="submit">
+	              <a class="btn" href="../wiki/%(title)s"><span class="btn-label">Cancel</span></a> 
+	            </div>
+	            </form>
+	          </div>
+	        </div>
+	      </div>
+	    </div>
+	    <script src="https://app.divshot.com/js/bootstrap.min.js"></script>
+	  </body>
+
+	</html>
 	'''
 
 ##Global Methods
@@ -466,16 +527,16 @@ class WikiPage(webapp2.RequestHandler):
 			
 class EditPage(webapp2.RequestHandler):
 	def get(self,id):
-		if LoggedIn(self):
-			self.response.write(LoggedInHeader%{"EditLink": '/wiki/_edit/'+id, "LogoutPath": '/logout'})
-		else:
-			self.redirect('/wiki/login')
+		# if LoggedIn(self):
+		# 	self.response.write(LoggedInHeader%{"EditLink": '/wiki/_edit/'+id, "LogoutPath": '/logout'})
+		# else:
+		# 	self.redirect('/wiki/login')
 		page = db.GqlQuery('Select * from WikiPages where PageTitle = :1 order by created DESC', id)
 		if page.get():
 			for e in page.run(limit = 1):
-				self.response.write(EditForm %{"text": e.PageContent})
+				self.response.write(EditForm %{"content": e.PageContent,"title":id[0].upper() + id[1:],"editlink": '/wiki/_edit/'+id, "logout": '/logout'})
 		else:
-			self.response.write(EditForm %{"text": ''})
+			self.response.write(EditForm %{"content": '',"title":id[0].upper() + id[1:],"editlink": '/wiki/_edit/'+id, "logout": '/logout'})
 			
 	def post(self,id):
 		page = WikiPages(PageTitle = id, PageContent = self.request.get("content").replace('\n','<br>'))
