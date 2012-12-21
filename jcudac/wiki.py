@@ -295,6 +295,18 @@ EditForm='''
 	    <link rel="stylesheet" href="https://app.divshot.com/themes/slate/bootstrap.min.css">
 	    <link rel="stylesheet" href="https://app.divshot.com/css/bootstrap-responsive.css">
 	    <script src="https://app.divshot.com/js/jquery.min.js"></script>
+	    <script type="text/javascript" src="../../jscripts/tiny_mce/tiny_mce.js"></script>
+
+		<script type="text/javascript">
+		tinyMCE.init({
+				theme : "advanced",
+			    skin : "o2k7",
+        		skin_variant : "black",
+		        mode : "textareas",
+		        theme_advanced_buttons1 : "save,newdocument,|,bold,italic,underline,strikethrough,|,justifyleft,justifycenter,justifyright,justifyfull,|,styleselect,formatselect,fontselect,fontsizeselect,cut,copy,paste,pastetext,pasteword,|,search,replace,|,bullist,numlist,|,outdent,indent,blockquote,|,undo,redo,|,link,unlink,anchor,image,cleanup,help,code,|,insertdate,inserttime,preview,|,forecolor,backcolor",
+
+		});
+		</script>
 	  </head>
 	  
 	  <body>
@@ -539,7 +551,7 @@ class EditPage(webapp2.RequestHandler):
 			self.response.write(EditForm %{"content": '',"title":id[0].upper() + id[1:],"editlink": '/wiki/_edit/'+id, "logout": '/logout'})
 			
 	def post(self,id):
-		page = WikiPages(PageTitle = id, PageContent = self.request.get("content").replace('\n','<br>'))
+		page = WikiPages(PageTitle = id, PageContent = self.request.get("content"))#.replace('\n','<br>'))
 		page.put()
 		self.redirect("/wiki/" + id, permanent=False)
 		
