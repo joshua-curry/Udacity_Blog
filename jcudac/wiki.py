@@ -1,4 +1,3 @@
-import webapp2
 import re
 import time
 import random
@@ -6,89 +5,15 @@ import string
 import hashlib
 from google.appengine.api import memcache
 from google.appengine.ext import db
+import os
+import webapp2
+
+import jinja2
+
+jinja_environment = jinja2.Environment(autoescape=True,
+    loader=jinja2.FileSystemLoader(os.path.join(os.path.dirname(__file__), 'templates')))
 
 ##HTML Strings
-WikiSignUpForm='''
-	<!doctype html>
-	<html>
-	  
-	  <head>
-	    <title>Signup</title>
-	    <meta name="viewport" content="width=device-width, initial-scale=1">
-	    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
-	    <link rel="stylesheet" href="https://app.divshot.com/css/divshot-util.css">
-	    <link rel="stylesheet" href="https://app.divshot.com/themes/slate/bootstrap.min.css">
-	    <link rel="stylesheet" href="https://app.divshot.com/css/bootstrap-responsive.css">
-	    <script src="https://app.divshot.com/js/jquery.min.js"></script>
-	  </head>
-	  
-	  <body>
-	    <div class="container">
-	      <div class="navbar navbar-fixed-top navbar-inverse">
-	        <div class="navbar-inner">
-	          <div class="container">
-	            <a class="brand" href="../wiki">CurryWIKI</a>
-	            <div class="navbar-content">
-	              <ul class="nav">
-	                <li class="active">
-	                  <a href="../wiki/login">Login</a> 
-	                </li>
-	              </ul>
-	            </div>
-	          </div>
-	        </div>
-	      </div>
-	      <form class="form-horizontal pull-right" method = "post">
-	        <div class="row">
-	          <div class="span4">
-	            <img src="http://placehold.it/360x360" width="360" height="360"> 
-	          </div>
-	          <div class="span8">
-	            <div class="control-group">
-	              <label class="control-label" for="username">Username</label>
-	              <div class="controls">
-	                <input type="text" placeholder="Username" name="username" id="username" value = '%(user)s'
-	                class="input-large"> 
-					<span style = "color: red">%(UserError)s</span>
-	              </div>
-	            </div>
-				<div class="control-group">
-	              <label class="control-label" for="Password">Password</label>
-	              <div class="controls">
-	                <input type="password" name="password" placeholder="Password" id="password"
-	                class="input-large">
-					<span style = "color: red">%(PassError)s</span>
-	              </div>
-	            </div>
-	            <div class="control-group">
-	              <label class="control-label" for="verify">Retype Password</label>
-	              <div class="controls">
-	                <input type="password" name="verify" placeholder="Retype Password" id="verify"
-	                class="input-large"> 
-					<span style = "color: red">%(Pass2Error)s</span>
-	              </div>
-	            </div>
-	            <div class="control-group">
-	              <label class="control-label" for="email">Email (Optional)</label>
-	              <div class="controls">
-	                <input type="email" placeholder="example@email.com" name="email" id="email" value = '%(email)s'
-	                class="input-large"> 
-					<span style = "color: red">%(EmailError)s</span>
-	              </div>
-	            </div>
-	            <div class="form-actions">
-	              <input class="btn btn-success" type="submit">
-	            </div>
-	          </div>
-	        </div>
-	      </form>
-	    </div>
-	    <script src="https://app.divshot.com/js/bootstrap.min.js"></script>
-	  </body>
-
-	</html>
-	'''
-
 LandingPage='''
 	<!doctype html>
 	<html>
@@ -276,13 +201,6 @@ WikiPagesHTML='''
 	</html>
 	'''
 
-EditForm2='''
-	<form method = "post">
-		<textarea name = "content">%(text)s</textarea>
-		</br>
-		<input type = "Submit">
-	'''
-
 EditForm='''
 	<!doctype html>
 	<html>
@@ -421,6 +339,7 @@ class Signup(webapp2.RequestHandler):
 		return EMAIL_RE.match(email)
       
 	def write_form(self):
+		template = jinja_environment.get_template('WikiSignUpForm.html')
 		UserError = ''
 		PassError = ''
 		Pass2Error = ''
@@ -440,7 +359,7 @@ class Signup(webapp2.RequestHandler):
 			EmailError = 'Please enter a valid email'
 
 		if UserError !='' or PassError !='' or Pass2Error !='' or EmailError !='':
-			self.response.write(WikiSignUpForm %{"UserError": UserError, "PassError": PassError, "Pass2Error": Pass2Error, "EmailError": EmailError, "user": user, "email": email})
+			self.response.write(template.render({"UserError": UserError, "PassError": PassError, "Pass2Error": Pass2Error, "EmailError": EmailError, "user": user, "email": email}))
 		else:
 			username =self.request.get('username')
 			password = self.request.get('password')
@@ -451,7 +370,8 @@ class Signup(webapp2.RequestHandler):
 			self.redirect("/wiki", permanent=False)
 		
 	def get(self):
-		self.response.write(WikiSignUpForm %{"UserError": '', "PassError": '', "Pass2Error": '', "EmailError": '', "user": '', "email": ''})
+		template = jinja_environment.get_template('WikiSignUpForm.html')
+		self.response.write(template.render({"UserError": '', "PassError": '', "Pass2Error": '', "EmailError": '', "user": '', "email": ''}))
 
 	def post(self):
 		self.write_form()

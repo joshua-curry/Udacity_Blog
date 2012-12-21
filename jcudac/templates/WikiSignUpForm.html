@@ -1,0 +1,78 @@
+<!doctype html>
+<html>
+  
+  <head>
+    <title>Signup</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+    <link rel="stylesheet" href="https://app.divshot.com/css/divshot-util.css">
+    <link rel="stylesheet" href="https://app.divshot.com/themes/slate/bootstrap.min.css">
+    <link rel="stylesheet" href="https://app.divshot.com/css/bootstrap-responsive.css">
+    <script src="https://app.divshot.com/js/jquery.min.js"></script>
+  </head>
+  
+  <body>
+    <div class="container">
+      <div class="navbar navbar-fixed-top navbar-inverse">
+        <div class="navbar-inner">
+          <div class="container">
+            <a class="brand" href="../wiki">CurryWIKI</a>
+            <div class="navbar-content">
+              <ul class="nav">
+                <li class="active">
+                  <a href="../wiki/login">Login</a> 
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <form class="form-horizontal pull-right" method = "post">
+        <div class="row">
+          <div class="span4">
+            <img src="http://placehold.it/360x360" width="360" height="360"> 
+          </div>
+          <div class="span8">
+            <div class="control-group">
+              <label class="control-label" for="username">Username</label>
+              <div class="controls">
+                <input type="text" placeholder="Username" name="username" id="username" value = '{{user}}'
+                class="input-large"> 
+				<span style = "color: red">{{UserError}}</span>
+              </div>
+            </div>
+			<div class="control-group">
+              <label class="control-label" for="Password">Password</label>
+              <div class="controls">
+                <input type="password" name="password" placeholder="Password" id="password"
+                class="input-large">
+				<span style = "color: red">{{PassError}}</span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label" for="verify">Retype Password</label>
+              <div class="controls">
+                <input type="password" name="verify" placeholder="Retype Password" id="verify"
+                class="input-large"> 
+				<span style = "color: red">{{Pass2Error}}</span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label" for="email">Email (Optional)</label>
+              <div class="controls">
+                <input type="email" placeholder="example@email.com" name="email" id="email" value = '{{email}}'
+                class="input-large"> 
+				<span style = "color: red">{{EmailError}}</span>
+              </div>
+            </div>
+            <div class="form-actions">
+              <input class="btn btn-success" type="submit">
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+    <script src="https://app.divshot.com/js/bootstrap.min.js"></script>
+  </body>
+
+</html>
