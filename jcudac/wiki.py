@@ -14,6 +14,7 @@ jinja_environment = jinja2.Environment(autoescape=True,
     loader=jinja2.FileSystemLoader(os.path.join(os.path.dirname(__file__), 'templates')))
 
 ##HTML Strings
+
 WikiPagesHTML='''
 	<!doctype html>
 	<html>
@@ -37,10 +38,10 @@ WikiPagesHTML='''
 	            <div class="navbar-content">
 	              <ul class="nav">
 	                <li class="active">
-	                  <a href="%(editlink)s">Edit</a> 
+	                  <a href="/wiki/_edit/%(title)s">Edit</a> 
 	                </li>
 	                <li class="pull-right">
-	                  <a href="%(logout)s">Logout</a> 
+	                  <a href="/wiki/logout">Logout</a> 
 	                </li>
 	              </ul>
 	            </div>
@@ -305,15 +306,16 @@ class Logout(webapp2.RequestHandler):
 		
 class WikiPage(webapp2.RequestHandler):
 	def get(self,id):
+		WikiPagesTemplate = jinja_environment.get_template('WikiPages.html')
 		# if LoggedIn(self):
 			# self.response.write(LoggedInHeader%{"EditLink": '/wiki/_edit/'+id, "LogoutPath": '/wiki/logout'})
 		# else:
 			# self.response.write(LoggedOutHeader)
-		page = db.GqlQuery('Select * from WikiPages where PageTitle = :1 order by created DESC', id)
+		page = db.GqlQuery('Select * from WikiPages where PageTitle = :1 order by created DESC', id.lower())
 		if page.get():
 			for e in page.run(limit = 1):
 				#self.response.write(e.PageContent)
-				self.response.write(WikiPagesHTML %{"title":id[0].upper() + id[1:],"text":e.PageContent,"editlink":'/wiki/_edit/'+id,"logout":'/wiki/logout'})
+				self.response.write(WikiPagesTemplate.render({"title":id[0].upper() + id[1:],"text":e.PageContent}))
 		else:
 			if LoggedIn(self):
 				self.redirect('_edit/'+id)
@@ -326,7 +328,7 @@ class EditPage(webapp2.RequestHandler):
 		# 	self.response.write(LoggedInHeader%{"EditLink": '/wiki/_edit/'+id, "LogoutPath": '/logout'})
 		# else:
 		# 	self.redirect('/wiki/login')
-		page = db.GqlQuery('Select * from WikiPages where PageTitle = :1 order by created DESC', id)
+		page = db.GqlQuery('Select * from WikiPages where PageTitle = :1 order by created DESC', id.lower())
 		if page.get():
 			for e in page.run(limit = 1):
 				self.response.write(EditForm %{"content": e.PageContent,"title":id[0].upper() + id[1:],"editlink": '/wiki/_edit/'+id, "logout": '/logout'})
@@ -334,7 +336,7 @@ class EditPage(webapp2.RequestHandler):
 			self.response.write(EditForm %{"content": '',"title":id[0].upper() + id[1:],"editlink": '/wiki/_edit/'+id, "logout": '/logout'})
 			
 	def post(self,id):
-		page = WikiPages(PageTitle = id, PageContent = self.request.get("content"))#.replace('\n','<br>'))
+		page = WikiPages(PageTitle = id.lower(), PageContent = self.request.get("content"))#.replace('\n','<br>'))
 		page.put()
 		self.redirect("/wiki/" + id, permanent=False)
 		
