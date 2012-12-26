@@ -339,7 +339,7 @@ class Signup(webapp2.RequestHandler):
 		return EMAIL_RE.match(email)
       
 	def write_form(self):
-		template = jinja_environment.get_template('WikiSignUpForm.html')
+		SignUpTemplate = jinja_environment.get_template('WikiSignUpForm.html')
 		UserError = ''
 		PassError = ''
 		Pass2Error = ''
@@ -359,7 +359,7 @@ class Signup(webapp2.RequestHandler):
 			EmailError = 'Please enter a valid email'
 
 		if UserError !='' or PassError !='' or Pass2Error !='' or EmailError !='':
-			self.response.write(template.render({"UserError": UserError, "PassError": PassError, "Pass2Error": Pass2Error, "EmailError": EmailError, "user": user, "email": email}))
+			self.response.write(SignUpTemplate.render({"UserError": UserError, "PassError": PassError, "Pass2Error": Pass2Error, "EmailError": EmailError, "user": user, "email": email}))
 		else:
 			username =self.request.get('username')
 			password = self.request.get('password')
@@ -370,8 +370,8 @@ class Signup(webapp2.RequestHandler):
 			self.redirect("/wiki", permanent=False)
 		
 	def get(self):
-		template = jinja_environment.get_template('WikiSignUpForm.html')
-		self.response.write(template.render({"UserError": '', "PassError": '', "Pass2Error": '', "EmailError": '', "user": '', "email": ''}))
+		SignUpTemplate = jinja_environment.get_template('WikiSignUpForm.html')
+		self.response.write(SignUpTemplate.render({"UserError": '', "PassError": '', "Pass2Error": '', "EmailError": '', "user": '', "email": ''}))
 
 	def post(self):
 		self.write_form()
@@ -482,4 +482,5 @@ class WikiInit(webapp2.RequestHandler):
 		
 class WikiLanding(webapp2.RequestHandler):
 	def get(self):
-		self.response.write(LandingPage)
+		LandingPageTemplate = jinja_environment.get_template('LandingPage.html')
+		self.response.write(LandingPageTemplate.render())
