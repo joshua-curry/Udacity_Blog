@@ -14,145 +14,6 @@ jinja_environment = jinja2.Environment(autoescape=True,
     loader=jinja2.FileSystemLoader(os.path.join(os.path.dirname(__file__), 'templates')))
 
 ##HTML Strings
-LandingPage='''
-	<!doctype html>
-	<html>
-	  
-	  <head>
-	    <title>Landing Page</title>
-	    <meta name="viewport" content="width=device-width, initial-scale=1">
-	    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
-	    <link rel="stylesheet" href="https://app.divshot.com/css/divshot-util.css">
-	    <link rel="stylesheet" href="https://app.divshot.com/themes/slate/bootstrap.min.css">
-	    <link rel="stylesheet" href="https://app.divshot.com/css/bootstrap-responsive.css">
-	    <script src="https://app.divshot.com/js/jquery.min.js"></script>
-	  </head>
-	  
-	  <body>
-	    <div class="container">
-	      <div class="navbar navbar-fixed-top navbar-inverse">
-	        <div class="navbar-inner">
-	          <div class="container">
-	            <a class="brand" href="../wiki">CurryWIKI</a>
-	            <div class="navbar-content">
-	              <ul class="nav">
-	                <li class="active">
-	                  <a href="../wiki/login">Login</a> 
-	                </li>
-	              </ul>
-	            </div>
-	          </div>
-	        </div>
-	      </div>
-	    </div>
-	    <div class="hero-unit hidden-phone">
-	      <h1>CurryWIKI</h1>
-	      <p>The Best WIKI On The Internet If You Aren't Really Interested In Information</p>
-	      <p>
-	        <a class="btn btn-large btn-info" href="../wiki/signup"><span class="btn-label">Sign Up Today!</span></a> 
-	      </p>
-	    </div>
-		<div class="hero-unit visible-phone">
-	      <h3>CurryWIKI</h3>
-	      <p>The Best WIKI On The Internet If You Aren't Really Interested In Information</p>
-	      <p>
-	        <a class="btn btn-large btn-info" href="../wiki/signup"><span class="btn-label">Sign Up Today!</span></a> 
-	      </p>
-	    </div>
-	    <div class="row-fluid">
-	      <div class="span4">
-	        <div class="well">
-	          <h3>Sample 1</h3>
-	          <p>This is the sample text from the first random blog entry.</p>
-	          <a class="btn btn-inverse"
-	          href="#"><span class="btn-label">Read</span></a> 
-	        </div>
-	      </div>
-	      <div class="span4">
-	        <div class="well">
-	          <h3>Sample 2</h3>
-	          <p>This is the sample text from the second random blog entry.
-	            <br> 
-	          </p>
-	          <a class="btn btn-inverse" href="#"><span class="btn-label">Read</span></a> 
-	        </div>
-	      </div>
-	      <div class="span4">
-	        <div class="well">
-	          <h3>Sample 3</h3>
-	          <p>This is the sample text from the third random blog entry.
-	            <br> 
-	          </p>
-	          <a class="btn btn-inverse" href="#"><span class="btn-label">Read</span></a> 
-	        </div>
-	      </div>
-	    </div>
-	    <script src="https://app.divshot.com/js/bootstrap.min.js"></script>
-	  </body>
-
-	</html>
-	'''
-
-WikiLoginForm='''
-	<!doctype html>
-	<html>
-	  
-	  <head>
-	    <title>Login</title>
-	    <meta name="viewport" content="width=device-width, initial-scale=1">
-	    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
-	    <link rel="stylesheet" href="https://app.divshot.com/css/divshot-util.css">
-	    <link rel="stylesheet" href="https://app.divshot.com/themes/slate/bootstrap.min.css">
-	    <link rel="stylesheet" href="https://app.divshot.com/css/bootstrap-responsive.css">
-	    <script src="https://app.divshot.com/js/jquery.min.js"></script>
-	  </head>
-	  
-	  <body>
-	    <div class="container">
-	      <div class="navbar navbar-fixed-top navbar-inverse">
-	        <div class="navbar-inner">
-	          <div class="container">
-	            <a class="brand" href="../wiki">CurryWIKI</a>
-	            <div class="navbar-content">
-	              <ul class="nav"></ul>
-	            </div>
-	          </div>
-	        </div>
-	      </div>
-	      <form class="form-horizontal pull-right" method = "post">
-	        <div class="row">
-	          <div class="span3"></div>
-	          <div class="span6">
-	            <div class="control-group">
-	              <label class="control-label" for="username">Username</label>
-	              <div class="controls">
-	                <input type="text" placeholder="username" name="username" id="username"
-	                class="input-large" value = '%(user)s'>
-					<span style = "color: red">%(UserError)s</span>
-	              </div>
-	            </div>
-	            <div class="control-group">
-	              <label class="control-label" for="Password">Password</label>
-	              <div class="controls">
-	                <input type="text" placeholder="Password" name="password" id="Password"
-	                class="input-large">
-					<span style = "color: red">%(PassError)s</span>
-	              </div>
-	            </div>
-	            <div class="form-actions">
-	              <input class="btn btn-success" type="submit">
-	            </div>
-	          </div>
-	          <div class="span3"></div>
-	        </div>
-	      </form>
-	    </div>
-	    <script src="https://app.divshot.com/js/bootstrap.min.js"></script>
-	  </body>
-
-	</html>
-	'''
-
 WikiPagesHTML='''
 	<!doctype html>
 	<html>
@@ -411,6 +272,7 @@ class Login(webapp2.RequestHandler):
 		return''
 
 	def write_form(self):
+		WikiLoginFormTemplate = jinja_environment.get_template('WikiLoginForm.html')
 		UserError = ''
 		PassError = ''
       
@@ -422,7 +284,7 @@ class Login(webapp2.RequestHandler):
 			PassError = 'Please enter a vaild password'
 
 		if UserError !='' or PassError !='':
-			self.response.write(WikiLoginForm %{"UserError": UserError, "PassError": PassError, "user": user})
+			self.response.write(WikiLoginFormTemplate.render({"UserError": UserError, "PassError": PassError, "user": user}))
 		else:
 			username =self.request.get('username')
 			password = self.request.get('password')
@@ -430,7 +292,8 @@ class Login(webapp2.RequestHandler):
 			self.redirect("/wiki", permanent=False)
         
 	def get(self):
-		self.response.write(WikiLoginForm %{"UserError": '', "PassError": '', "user": ''})
+		WikiLoginFormTemplate = jinja_environment.get_template('WikiLoginForm.html')
+		self.response.write(WikiLoginFormTemplate.render({"UserError": '', "PassError": '', "user": ''}))
 
 	def post(self):
 		self.write_form()

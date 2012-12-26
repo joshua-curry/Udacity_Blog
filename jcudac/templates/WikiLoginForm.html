@@ -1,0 +1,57 @@
+<!doctype html>
+<html>
+  
+  <head>
+    <title>Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+    <link rel="stylesheet" href="https://app.divshot.com/css/divshot-util.css">
+    <link rel="stylesheet" href="https://app.divshot.com/themes/slate/bootstrap.min.css">
+    <link rel="stylesheet" href="https://app.divshot.com/css/bootstrap-responsive.css">
+    <script src="https://app.divshot.com/js/jquery.min.js"></script>
+  </head>
+  
+  <body>
+    <div class="container">
+      <div class="navbar navbar-fixed-top navbar-inverse">
+        <div class="navbar-inner">
+          <div class="container">
+            <a class="brand" href="../wiki">CurryWIKI</a>
+            <div class="navbar-content">
+              <ul class="nav"></ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <form class="form-horizontal pull-right" method = "post">
+        <div class="row">
+          <div class="span3"></div>
+          <div class="span6">
+            <div class="control-group">
+              <label class="control-label" for="username">Username</label>
+              <div class="controls">
+                <input type="text" placeholder="Username" name="username" id="username"
+                class="input-large" value = '{{user}}'>
+				<span style = "color: red">{{UserError}}</span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label" for="Password">Password</label>
+              <div class="controls">
+                <input type="password" placeholder="Password" name="password" id="Password"
+                class="input-large">
+				<span style = "color: red">{{PassError}}</span>
+              </div>
+            </div>
+            <div class="form-actions">
+              <input class="btn btn-success" type="submit">
+            </div>
+          </div>
+          <div class="span3"></div>
+        </div>
+      </form>
+    </div>
+    <script src="https://app.divshot.com/js/bootstrap.min.js"></script>
+  </body>
+
+</html>
