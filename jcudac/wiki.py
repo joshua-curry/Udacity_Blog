@@ -14,55 +14,6 @@ jinja_environment = jinja2.Environment(autoescape=True,
     loader=jinja2.FileSystemLoader(os.path.join(os.path.dirname(__file__), 'templates')))
 
 ##HTML Strings
-
-WikiPagesHTML='''
-	<!doctype html>
-	<html>
-	  
-	  <head>
-	    <title>WikiPage</title>
-	    <meta name="viewport" content="width=device-width, initial-scale=1">
-	    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
-	    <link rel="stylesheet" href="https://app.divshot.com/css/divshot-util.css">
-	    <link rel="stylesheet" href="https://app.divshot.com/themes/slate/bootstrap.min.css">
-	    <link rel="stylesheet" href="https://app.divshot.com/css/bootstrap-responsive.css">
-	    <script src="https://app.divshot.com/js/jquery.min.js"></script>
-	  </head>
-	  
-	  <body>
-	    <div class="container">
-	      <div class="navbar navbar-fixed-top navbar-inverse">
-	        <div class="navbar-inner">
-	          <div class="container">
-	            <a class="brand" href="#">CurryWIKI</a>
-	            <div class="navbar-content">
-	              <ul class="nav">
-	                <li class="active">
-	                  <a href="/wiki/_edit/%(title)s">Edit</a> 
-	                </li>
-	                <li class="pull-right">
-	                  <a href="/wiki/logout">Logout</a> 
-	                </li>
-	              </ul>
-	            </div>
-	          </div>
-	        </div>
-	      </div>
-	      <div class="container">
-	        <div class="well">
-	          <h1>%(title)s</h1>
-	          <div class="well">
-	            <p>%(text)s</p>
-	          </div>
-	        </div>
-	      </div>
-	    </div>
-	    <script src="https://app.divshot.com/js/bootstrap.min.js"></script>
-	  </body>
-
-	</html>
-	'''
-
 EditForm='''
 	<!doctype html>
 	<html>
@@ -251,11 +202,12 @@ class Login(webapp2.RequestHandler):
 	def valid_pw(self, name, pw):
 		password = ''
 		user = db.GqlQuery('Select * from WikiUsers where username = :1', name)
-		self.response.write(user.get())
 		for e in user:
 			password = e.password
-      
-		salt = password.split('|')[1]
+		if password.find('|') != -1:
+			salt = password.split('|')[1]
+		else:
+			return False
 		if self.make_pw_hash(name, pw, salt) == password:
 			return True
 
@@ -263,13 +215,6 @@ class Login(webapp2.RequestHandler):
 		user = db.GqlQuery('Select * from WikiUsers where username = :1', username)
 		if not user.get():
 			return 'That Username does not exist'
-		return''
-
-	def Validate_Password(self, password, username):
-		user = db.GqlQuery('Select * from WikiUsers where username = :1', username)
-		user.password
-		if not user.get():
-			return 'Incorrect password'
 		return''
 
 	def write_form(self):
