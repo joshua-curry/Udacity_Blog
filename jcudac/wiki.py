@@ -252,14 +252,9 @@ class Logout(webapp2.RequestHandler):
 class WikiPage(webapp2.RequestHandler):
 	def get(self,id):
 		WikiPagesTemplate = jinja_environment.get_template('WikiPages.html')
-		# if LoggedIn(self):
-			# self.response.write(LoggedInHeader%{"EditLink": '/wiki/_edit/'+id, "LogoutPath": '/wiki/logout'})
-		# else:
-			# self.response.write(LoggedOutHeader)
 		page = db.GqlQuery('Select * from WikiPages where PageTitle = :1 order by created DESC', id.lower())
 		if page.get():
 			for e in page.run(limit = 1):
-				#self.response.write(e.PageContent)
 				self.response.write(WikiPagesTemplate.render({"title":id[0].upper() + id[1:],"text":e.PageContent}))
 		else:
 			if LoggedIn(self):
@@ -269,10 +264,6 @@ class WikiPage(webapp2.RequestHandler):
 			
 class EditPage(webapp2.RequestHandler):
 	def get(self,id):
-		# if LoggedIn(self):
-		# 	self.response.write(LoggedInHeader%{"EditLink": '/wiki/_edit/'+id, "LogoutPath": '/logout'})
-		# else:
-		# 	self.redirect('/wiki/login')
 		page = db.GqlQuery('Select * from WikiPages where PageTitle = :1 order by created DESC', id.lower())
 		if page.get():
 			for e in page.run(limit = 1):
@@ -281,7 +272,7 @@ class EditPage(webapp2.RequestHandler):
 			self.response.write(EditForm %{"content": '',"title":id[0].upper() + id[1:],"editlink": '/wiki/_edit/'+id, "logout": '/logout'})
 			
 	def post(self,id):
-		page = WikiPages(PageTitle = id.lower(), PageContent = self.request.get("content"))#.replace('\n','<br>'))
+		page = WikiPages(PageTitle = id.lower(), PageContent = self.request.get("content"))
 		page.put()
 		self.redirect("/wiki/" + id, permanent=False)
 		
