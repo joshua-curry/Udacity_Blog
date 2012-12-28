@@ -13,80 +13,6 @@ import jinja2
 jinja_environment = jinja2.Environment(autoescape=True,
     loader=jinja2.FileSystemLoader(os.path.join(os.path.dirname(__file__), 'templates')))
 
-##HTML Strings
-EditForm='''
-	<!doctype html>
-	<html>
-	  
-	  <head>
-	    <title>EditPage</title>
-	    <meta name="viewport" content="width=device-width, initial-scale=1">
-	    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
-	    <link rel="stylesheet" href="https://app.divshot.com/css/divshot-util.css">
-	    <link rel="stylesheet" href="https://app.divshot.com/themes/slate/bootstrap.min.css">
-	    <link rel="stylesheet" href="https://app.divshot.com/css/bootstrap-responsive.css">
-	    <script src="https://app.divshot.com/js/jquery.min.js"></script>
-	    <script type="text/javascript" src="../../jscripts/tiny_mce/tiny_mce.js"></script>
-
-		<script type="text/javascript">
-		tinyMCE.init({
-				theme : "advanced",
-			    skin : "o2k7",
-        		skin_variant : "black",
-		        mode : "textareas",
-		        theme_advanced_buttons1 : "save,newdocument,|,bold,italic,underline,strikethrough,|,justifyleft,justifycenter,justifyright,justifyfull,|,styleselect,formatselect,fontselect,fontsizeselect,cut,copy,paste,pastetext,pasteword,|,search,replace,|,bullist,numlist,|,outdent,indent,blockquote,|,undo,redo,|,link,unlink,anchor,image,cleanup,help,code,|,insertdate,inserttime,preview,|,forecolor,backcolor",
-
-		});
-		</script>
-	  </head>
-	  
-	  <body>
-	    <div class="container">
-	      <div class="navbar navbar-fixed-top navbar-inverse">
-	        <div class="navbar-inner">
-	          <div class="container">
-	            <a class="brand" href="../wiki">CurryWIKI</a>
-	            <div class="navbar-content">
-	              <ul class="nav">
-	                <li class="active">
-	                  <a href="%(editlink)s">Edit</a> 
-	                </li>
-	                <li class="pull-right">
-	                  <a href="%(logout)s">Logout</a> 
-	                </li>
-	              </ul>
-	            </div>
-	          </div>
-	        </div>
-	      </div>
-	      <div class="container">
-	        <div class="well">
-	          <h1>%(title)s</h1>
-	          <div class="well">
-	            <form class="form-vertical" method = "post">
-	              <div class="control-group">
-	                <label class="control-label">
-	                  <br> 
-	                </label>
-	                <div class="controls">
-	                  <textarea name = "content" rows="15" style="margin: 0px 0px 9px; width: 1073px; height: 348px;">%(content)s</textarea>
-	                </div>
-	              </div>
-	            <div class="form-actions">
-	              <input class="btn btn-success" type="submit">
-	              <a class="btn" href="../wiki/%(title)s"><span class="btn-label">Cancel</span></a> 
-	            </div>
-	            </form>
-	          </div>
-	        </div>
-	      </div>
-	    </div>
-	    <script src="https://app.divshot.com/js/bootstrap.min.js"></script>
-	  </body>
-
-	</html>
-	'''
-
 ##Global Methods
 def LoggedIn(self):
 	if self.request.cookies.get('name',0):
@@ -264,12 +190,13 @@ class WikiPage(webapp2.RequestHandler):
 			
 class EditPage(webapp2.RequestHandler):
 	def get(self,id):
+		EditFormTemplate = jinja_environment.get_template('EditForm.html')
 		page = db.GqlQuery('Select * from WikiPages where PageTitle = :1 order by created DESC', id.lower())
 		if page.get():
 			for e in page.run(limit = 1):
-				self.response.write(EditForm %{"content": e.PageContent,"title":id[0].upper() + id[1:],"editlink": '/wiki/_edit/'+id, "logout": '/logout'})
+				self.response.write(EditFormTemplate.render({"content": e.PageContent,"title":id[0].upper() + id[1:],"editlink": '/wiki/_edit/'+id, "logout": '/logout'}))
 		else:
-			self.response.write(EditForm %{"content": '',"title":id[0].upper() + id[1:],"editlink": '/wiki/_edit/'+id, "logout": '/logout'})
+			self.response.write(EditFormTemplate.render({"content": '',"title":id[0].upper() + id[1:],"editlink": '/wiki/_edit/'+id, "logout": '/logout'}))
 			
 	def post(self,id):
 		page = WikiPages(PageTitle = id.lower(), PageContent = self.request.get("content"))
