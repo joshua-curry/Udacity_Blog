@@ -15,8 +15,28 @@ jinja_environment = jinja2.Environment(autoescape=True,
 
 ##Global Methods
 def LoggedIn(self):
-	if self.request.cookies.get('name',0):
+	if check_secure_val(self.request.cookies.get('name','')):
 		return True
+	return False
+
+def make_salt():
+		return ''.join(random.choice(string.letters) for x in xrange(5))
+
+def make_pw_hash(name, pw, salt=''):
+	if salt == '':
+		salt = make_salt()
+	h = hashlib.sha256(name + pw + salt).hexdigest()
+	return '%s|%s' % (h, salt)
+
+def hash_str(s):
+	return hashlib.md5(s + 'c598f5b2e9454f037ba49839e7e99b38955ec35158024292b809af8b75881730c92e16808e973f9c5c91b9426bc33af8e1ca35a70ea1cf2eab071100ad951e60').hexdigest()
+
+def make_secure_val(s):
+	return "%s|%s" % (s, hash_str(s))
+
+def check_secure_val(h):
+	if make_secure_val(h[0:h.find('|')]) == h:
+		return h[0:h.find('|')]
 	return False
 
 ##DB Models
@@ -32,25 +52,25 @@ class WikiPages(db.Model):
 
 ##Classes
 class Signup(webapp2.RequestHandler):
-	def make_salt(self):
-		return ''.join(random.choice(string.letters) for x in xrange(5))
+	# def make_salt(self):
+	# 	return ''.join(random.choice(string.letters) for x in xrange(5))
 
-	def make_pw_hash(self, name, pw, salt=''):
-		if salt == '':
-			salt = self.make_salt()
-		h = hashlib.sha256(name + pw + salt).hexdigest()
-		return '%s|%s' % (h, salt)
+	# def make_pw_hash(self, name, pw, salt=''):
+	# 	if salt == '':
+	# 		salt = self.make_salt()
+	# 	h = hashlib.sha256(name + pw + salt).hexdigest()
+	# 	return '%s|%s' % (h, salt)
 
-	def hash_str(self,s):
-		return hashlib.md5(s).hexdigest()
+	# def hash_str(self,s):
+	# 	return hashlib.md5(s).hexdigest()
 
-	def make_secure_val(self,s):
-		return "%s|%s" % (s, self.hash_str(s))
+	# def make_secure_val(self,s):
+	# 	return "%s|%s" % (s, self.hash_str(s))
 
-	def check_secure_val(self,h):
-		if make_secure_val(h[0:h.find(',')]) == h:
-			return h[0:h.find(',')]
-		return None
+	# def check_secure_val(self,h):
+	# 	if make_secure_val(h[0:h.find('|')]) == h:
+	# 		return h[0:h.find('|')]
+	# 	return None
 
 	def Validate_Username(self, username):
 		USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
@@ -102,9 +122,9 @@ class Signup(webapp2.RequestHandler):
 		else:
 			username =self.request.get('username')
 			password = self.request.get('password')
-			userdata = WikiUsers(username = username, password = self.make_pw_hash(username, password))
+			userdata = WikiUsers(username = username, password = make_pw_hash(username, password))
 			userdata.put()
-			name = self.make_secure_val(str(userdata.key().id()))
+			name = make_secure_val(str(username))
 			self.response.headers.add_header('Set-Cookie', 'name=%s; Path=/' % name)
 			self.redirect("/wiki", permanent=False)
 		
@@ -116,14 +136,25 @@ class Signup(webapp2.RequestHandler):
 		self.write_form()
 	
 class Login(webapp2.RequestHandler):
-	def make_salt(self):
-		return ''.join(random.choice(string.letters) for x in xrange(5))
+	# def make_salt(self):
+	# 	return ''.join(random.choice(string.letters) for x in xrange(5))
 
-	def make_pw_hash(self, name, pw, salt=''):
-		if salt == '':
-			salt = self.make_salt()
-		h = hashlib.sha256(name + pw + salt).hexdigest()
-		return '%s|%s' % (h, salt)
+	# def make_pw_hash(self, name, pw, salt=''):
+	# 	if salt == '':
+	# 		salt = self.make_salt()
+	# 	h = hashlib.sha256(name + pw + salt).hexdigest()
+	# 	return '%s|%s' % (h, salt)
+
+	# def hash_str(self,s):
+	# 	return hashlib.md5(s).hexdigest()
+
+	# def make_secure_val(self,s):
+	# 	return "%s|%s" % (s, self.hash_str(s))
+
+	# def check_secure_val(self,h):
+	# 	if make_secure_val(h[0:h.find('|')]) == h:
+	# 		return h[0:h.find('|')]
+	# 	return None
 
 	def valid_pw(self, name, pw):
 		password = ''
@@ -134,7 +165,7 @@ class Login(webapp2.RequestHandler):
 			salt = password.split('|')[1]
 		else:
 			return False
-		if self.make_pw_hash(name, pw, salt) == password:
+		if make_pw_hash(name, pw, salt) == password:
 			return True
 
 	def Validate_Username(self, username):
@@ -160,7 +191,8 @@ class Login(webapp2.RequestHandler):
 		else:
 			username =self.request.get('username')
 			password = self.request.get('password')
-			self.response.headers.add_header('Set-Cookie', 'name=%s; Path=/' % str(username))
+			name = make_secure_val(str(username))
+			self.response.headers.add_header('Set-Cookie', 'name=%s; Path=/' % name)
 			self.redirect("/wiki", permanent=False)
         
 	def get(self):
