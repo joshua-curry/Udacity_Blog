@@ -1,0 +1,320 @@
+<!doctype html>
+<html>
+  
+  <head>
+    <title>graphs</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+    <link rel="stylesheet" href="https://app.divshot.com/css/bootstrap.css">
+    <link rel="stylesheet" href="https://app.divshot.com/css/bootstrap-responsive.css"> 
+	
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+		<script type="text/javascript">
+$(function () {
+    var chart;
+    $(document).ready(function() {
+	Highcharts.setOptions({
+     colors: ['#2B6BAE', 
+				'#69AA51',
+				'#DB843D',				
+				'#EEB14C', 
+				'#80699B', 
+				'#3D96AE',  
+				'#92A8CD', 
+				'#A47D7C', 
+				'#B5CA92']
+    });
+        chart = new Highcharts.Chart({
+            chart: {
+                renderTo: 'container1',
+                type: 'column'
+            },
+            title: {
+				align: 'left',
+                text: 'Sales - Year over Year'
+            },
+            xAxis: {
+                categories: [
+                    'Jan',
+                    'Feb',
+                    'Mar',
+                    'Apr',
+                    'May',
+                    'Jun',
+                    'Jul',
+                    'Aug',
+                    'Sep',
+                    'Oct',
+                    'Nov',
+                    'Dec'
+                ]
+            },
+            yAxis: {
+                min: 0,
+                title: {
+                    text: null
+                }
+            },
+            legend: {
+                layout: 'horizontal',
+                backgroundColor: '#FFFFFF',
+                align: 'center',
+                verticalAlign: 'bottom',
+                x: 0,
+                y: 0,
+                floating: false,
+                shadow: false
+            },
+            tooltip: {
+				backgroundColor: {
+                linearGradient: [0, 0, 0, 60],
+                stops: [
+                    [0, '#FFFFFF'],
+                    [1, '#E0E0E0']
+					]
+				},
+				borderRadius: 2,
+				borderWidth: 1,
+				borderColor: '#AAA',
+                formatter: function() {
+                    return ''+'Month: '+
+                        this.x +'<br/>'+'Total Sales: $'+ this.y +'<br/>' +'Year: '+this.series.name;
+                }
+            },
+            plotOptions: {
+                column: {
+                    pointPadding: 0,
+                    borderWidth: 0
+                },
+				series: {
+                shadow: false
+				}
+            },
+			credits: {
+				enabled: false
+			},
+                series: [{
+                name: '2010',
+                data: [49.9, 71.5, 106.4, 129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1, 95.6, 54.4]
+    
+            }, {
+                name: '2011',
+                data: [83.6, 78.8, 98.5, 93.4, 106.0, 84.5, 105.0, 104.3, 91.2, 83.5, 106.6, 92.3]
+    
+            }, {
+                name: '2012',
+                data: [48.9, 38.8, 39.3, 41.4, 47.0, 48.3, 59.0, 59.6, 52.4, 65.2, 59.3, 51.2]
+    
+            }]
+        });
+		
+		chart2 = new Highcharts.Chart({
+            chart: {
+                renderTo: 'container2',
+                type: 'column'
+            },
+            title: {
+				align: 'left',
+                text: 'Online Bookings'
+            },
+            xAxis: {
+                categories: [
+                    'Jan',
+                    'Feb',
+                    'Mar',
+                    'Apr',
+                    'May',
+                    'Jun',
+                    'Jul',
+                    'Aug',
+                    'Sep',
+                    'Oct',
+                    'Nov',
+                    'Dec'
+                ]
+            },
+            yAxis: {
+                min: 0,
+                title: {
+                    text: null
+                }
+            },
+            legend: {
+                layout: 'horizontal',
+                backgroundColor: '#FFFFFF',
+                align: 'center',
+                verticalAlign: 'bottom',
+                x: 0,
+                y: 0,
+                floating: false,
+                shadow: false
+            },
+            tooltip: {
+				backgroundColor: {
+                linearGradient: [0, 0, 0, 60],
+                stops: [
+                    [0, '#FFFFFF'],
+                    [1, '#E0E0E0']
+					]
+				},
+				borderRadius: 2,
+				borderWidth: 1,
+				borderColor: '#AAA',
+                formatter: function() {
+                    return ''+'Month: '+
+                        this.x +'<br/>'+'Online Bookings: '+ this.y +'<br/>' +'Year: '+this.series.name;
+                }
+            },
+            plotOptions: {
+                column: {
+                    pointPadding: 0,
+                    borderWidth: 0
+                },
+				series: {
+                shadow: false
+				}
+            },
+			credits: {
+				enabled: false
+			},
+                series: [{
+                name: '2010',
+                data: [49.9, 71.5, 106.4, 129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1, 95.6, 54.4]
+    
+            }, {
+                name: '2011',
+                data: [83.6, 78.8, 98.5, 93.4, 106.0, 84.5, 105.0, 104.3, 91.2, 83.5, 106.6, 92.3]
+    
+            }, {
+                name: '2012',
+                data: [100.9, 110.8, 120.3, 41.4, 47.0, 48.3, 59.0, 59.6, 52.4, 65.2, 59.3, 51.2]
+    
+            }]
+        });
+		
+		chart3 = new Highcharts.Chart({
+            chart: {
+                renderTo: 'container3',
+                type: 'line',
+                marginRight: 0,
+                marginBottom: 25
+            },
+            title: {
+                text: 'Active Memberships',
+				align: 'left'
+            },
+            xAxis: {
+                categories: ['Jan 2012', 'Feb 2012', 'Mar 2012', 'Apr 2012', 'May 2012', 'Jun 2012',
+                    'Jul 2012', 'Aug 2012', 'Sep 2012', 'Oct 2012', 'Nov 2012', 'Dec 2012']
+            },
+            yAxis: {
+                title: {
+                    text: null
+                },
+                plotLines: [{
+                    value: 0,
+                    width: 1,
+                    color: '#808080'
+                }]
+            },
+			legend: {
+                enabled: false
+            },
+            tooltip: {
+				backgroundColor: {
+                linearGradient: [0, 0, 0, 60],
+                stops: [
+                    [0, '#FFFFFF'],
+                    [1, '#E0E0E0']
+					]
+				},
+				borderRadius: 2,
+				borderWidth: 1,
+				borderColor: '#AAA',
+                formatter: function() {
+                    return ''+'Active Memberships: '+ this.y+'<br/>'+
+					'Month/Year: '+ this.x;
+                }
+            },
+			plotOptions: {
+            series: {
+                shadow: false
+				}
+			},
+			credits: {
+				enabled: false
+			},
+            series: [{
+                name: 'Active Memberships',
+                data: [7.0, 6.9, 9.5, 14.5, 18.2, 21.5, 25.2, 26.5, 23.3, 18.3, 13.9, 9.6]
+            }]
+        });
+    });
+});
+		</script>
+		
+  </head>
+  
+  <body>
+  <script src="http://code.highcharts.com/highcharts.js"></script>
+<script src="http://code.highcharts.com/modules/exporting.js"></script>
+    <div class="row">
+		<div class="container">
+			<div class="span12" style="text-align: right">
+				<form name="monthselector" action="./dashboard" method="POST">
+					<select name="Months" onchange="this.form.submit()">
+					<option value="1" {{Selected1}}>January</option>
+					<option value="2" {{Selected2}}>February</option>
+					<option value="3" {{Selected3}}>March</option>
+					<option value="4" {{Selected4}}>April</option>
+					<option value="5" {{Selected5}}>May</option>
+					<option value="6" {{Selected6}}>June</option>
+					<option value="7" {{Selected7}}>July</option>
+					<option value="8" {{Selected8}}>August</option>
+					<option value="9" {{Selected9}}>September</option>
+					<option value="10" {{Selected10}}>October</option>
+					<option value="11" {{Selected11}}>November</option>
+					<option value="12" {{Selected12}}>December</option>
+					</select>
+				</form>
+			</div>
+		</div>
+	</div>
+    <div class="container">
+      <div class="row">
+        <div class="span4">
+          <span class="label label-inverse">Total Sales</span>
+          <h1 class="align-center" style="text-align: center">{{TotalSales}}</h1>
+        </div>
+        <div class="span4">
+          <span class="label label-inverse">Product Sales</span>
+          <h1 class="align-center" style="text-align: center">{{ProductSales}}</h1>
+        </div>
+        <div class="span4">
+          <span class="label label-inverse">New Memberships</span>
+          <h1 class="align-center" style="text-align: center">{{NewMemberships}}</h1>
+        </div>
+      </div>
+      <div class="row">
+        <div class="span4">
+          <span class="label label-inverse">Online Bookings</span>
+          <h1 class="align-center" style="text-align: center">{{OnlineBookings}}</h1>
+        </div>
+        <div class="span4">
+          <span class="label label-inverse">Attendance</span>
+          <h1 class="align-center" style="text-align: center">{{Attendance}}</h1>
+        </div>
+        <div class="span4">
+          <span class="label label-inverse">First Visits</span>
+          <h1 class="align-center" style="text-align: center">{{FirstVisits}}</h1>
+        </div>
+      </div>
+    </div>
+    <div class="container" id="container1" style="max-width: 1100px; height: 400px; margin: 0 auto"></div>
+    <div class="container" id="container2" style="max-width: 1100px; height: 400px; margin: 0 auto"></div>
+    <div class="container" id="container3" style="max-width: 1100px; height: 400px; margin: 0 auto"></div>
+    <script src="https://app.divshot.com/js/jquery.min.js"></script>
+    <script src="https://app.divshot.com/js/bootstrap.min.js"></script>
+  </body>
+
+</html>

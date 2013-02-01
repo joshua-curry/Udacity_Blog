@@ -10,6 +10,7 @@ import unit4
 import unit5
 import unit6
 import wiki
+import dashboard
 
 PAGE_RE = r'((?:[a-zA-Z0-9_-]+/?)*)'
 app = webapp2.WSGIApplication([(r'/', unit1.MainPage),
@@ -32,5 +33,6 @@ app = webapp2.WSGIApplication([(r'/', unit1.MainPage),
                                ('/wiki/logout', wiki.Logout),
                                ('/wiki/_edit/' + PAGE_RE, wiki.EditPage),
                                ('/wiki/' + PAGE_RE, wiki.WikiPage),
-							   ('/wiki_init', wiki.WikiInit)
+							   ('/wiki_init', wiki.WikiInit),
+							   ('/dashboard', dashboard.Overview)
 							   ],debug=True)
