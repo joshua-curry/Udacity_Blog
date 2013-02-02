@@ -5,7 +5,7 @@ import webapp2
 
 import jinja2
 
-jinja_environment = jinja2.Environment(autoescape=True,
+jinja_environment = jinja2.Environment(autoescape=False,
     loader=jinja2.FileSystemLoader(os.path.join(os.path.dirname(__file__), 'templates')))
 	
 class Overview(webapp2.RequestHandler):
@@ -20,10 +20,24 @@ class Overview(webapp2.RequestHandler):
 		values['Attendance']='334'
 		values['FirstVisits']='45'
 		values['Selected2']=' selected'
+		values['categories1']="'Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'"
+		values['TotalSalesLang']='Total Sales'
+		values['ProductSalesLang']='Product Sales'
+		values['NewMembershipsLang']='New Memberships'
+		values['OnlineBookingsLang']='Online Bookings'
+		values['AttendanceLang']='Attendance'
+		values['FirstVisitsLang']='First Visits'
+		values['SalesTitle']='Sales - Year over Year'
+		values['OnlineTitle']='Online Bookings'
+		values['ActMemTitle']='Active Members'
+		values['categories2']="'Jan 2012','Feb 2012','Mar 2012','Apr 2012','May 2012','Jun 2012','Jul 2012','Aug 2012','Sep 2012','Oct 2012','Nov 2012','Dec 2012'"
+		values['MonthLang']='Month'
+		values['YearLang']='Year'
 		self.response.write(OverviewTemplate.render(values))
 	def post(self):
 		OverviewTemplate = jinja_environment.get_template('Dashboard.html')
 		month = self.request.get('Months')
+		localization = self.request.get('Localization')
 		values = {}
 		if not month:
 			values['TotalSales']='$4,073'
@@ -129,4 +143,39 @@ class Overview(webapp2.RequestHandler):
 			values['Attendance']='3,111'
 			values['FirstVisits']='23'
 			values['Selected12']=' selected'
+
+		if localization == 'EN':
+			values['categories1']="'Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'"
+			values['categories2']="'Jan 2012','Feb 2012','Mar 2012','Apr 2012','May 2012','Jun 2012','Jul 2012','Aug 2012','Sep 2012','Oct 2012','Nov 2012','Dec 2012'"
+			values['LocalSelected1']=' selected'
+			values['TotalSalesLang']='Total Sales'
+			values['ProductSalesLang']='Product Sales'
+			values['NewMembershipsLang']='New Memberships'
+			values['OnlineBookingsLang']='Online Bookings'
+			values['AttendanceLang']='Attendance'
+			values['FirstVisitsLang']='First Visits'
+			values['SalesTitle']='Sales - Year over Year'
+			values['OnlineTitle']='Online Bookings'
+			values['ActMemTitle']='Active Members'
+			values['MonthLang']='Month'
+			values['YearLang']='Year'
+		if localization == 'SP':
+			values['categories1']="'Enero','Feb','Marzo','Abr','Mayo','Jun','Jul','Agosto','Sept','Oct','Nov','Dic'"
+			values['categories2']="'Enero 2012','Feb 2012','Marzo 2012','Abr 2012','Mayo 2012','Jun 2012','Jul 2012','Agosto 2012','Sept 2012','Oct 2012','Nov 2012','Dic 2012'"
+			values['LocalSelected2']=' selected'
+			values['TotalSalesLang']='Las Ventas Totales'
+			values['ProductSalesLang']='Venta de Productos'
+			values['NewMembershipsLang']='Nuevas Usuarios'
+			values['OnlineBookingsLang']='Reservas Online'
+			values['AttendanceLang']='Publico'
+			values['FirstVisitsLang']='Primeras Visitas'
+			values['SalesTitle']='Ventas - Ano tras Ano'
+			values['OnlineTitle']='Reservas Online'
+			values['ActMemTitle']='Miembros Activos'
+			values['MonthLang']='Mes'
+			values['YearLang']='Ano'
+		if localization =='DE':
+			values['categories1']="'Jan','Feb','Marz','Apr','Mai','Juni','Juli','Aug','Sept','Okt','Nov','Dez'"
+			values['categories2']="'Jan 2012','Feb 2012','Marz 2012','Apr 2012','Mai 2012','Juni 2012','Juli 2012','Aug 2012','Sept 2012','Okt 2012','Nov 2012','Dez 2012'"
+			values['LocalSelected3']=' selected'
 		self.response.write(OverviewTemplate.render(values))
