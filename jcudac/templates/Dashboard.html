@@ -11,7 +11,6 @@
     <script src="http://code.jquery.com/ui/1.10.0/jquery-ui.js"></script>
     <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.0/themes/base/jquery-ui.css" />
 
-
     <script>
         $(function() {
             $( "#datepicker" ).datepicker();
@@ -200,14 +199,7 @@
                     }]
                 },
     			legend: {
-                    layout: 'horizontal',
-                    backgroundColor: '#FFFFFF',
-                    align: 'center',
-                    verticalAlign: 'bottom',
-                    x: 0,
-                    y: 0,
-                    floating: false,
-                    shadow: false
+                    enabled: false
                 },
                 tooltip: {
     				backgroundColor: {
@@ -235,16 +227,7 @@
     			},
                 series: [{
                     name: '2011',
-                    data: [{{Membership2011YOY}}]
-        
-                }, {
-                    name: '2012',
-                    data: [{{Membership2012YOY}}]
-        
-                }, {
-                    name: '2013',
-                    data: [{{Membership2013YOY}}]
-        
+                    data: [{{MembershipYOY}}]
                 }]
             });
 
@@ -561,30 +544,72 @@ $(function () {
     <div style="margin: 15px;">
       <div class="row">
         <div class="span5" style="border-top: 1px solid #C0C0C0; border-right: none; border-bottom: none; border-left: none;">
-          <span class="align-center" style="text-align: center">{{TotalSalesLang}}</span>
-          <h1 class="align-center" style="text-align: center">{{TotalSales}}</h1>
+            <span>{{TotalSalesLang}}</span>
+            <div class="align-center" style="text-align: center">
+                <div class="span3">
+                    <h2 class="align-center" style="text-align: left; font-size: 28.5px;">{{TotalSales}}</h2>
+                </div>
+                <div class="span1">
+                    <h4 class="align-center" style="text-align: right; font-size: 15.5px; line-height: 40px; color: rgb{{SalesChangeColor}};">{{SalesChange}}</h4>
+                </div>
+            </div>
         </div>
         <div class="span5" style="border-top: 1px solid #C0C0C0; border-right: none; border-bottom: none; border-left: none;">
           <span>{{ProductSalesLang}}</span>
-          <h1 class="align-center" style="text-align: center">{{ProductSales}}</h1>
+          <div class="align-center" style="text-align: center">
+                <div class="span3">
+                    <h2 class="align-center" style="text-align: left; font-size: 28.5px;">{{ProductSales}}</h2>
+                </div>
+                <div class="span1">
+                    <h4 class="align-center" style="text-align: right; font-size: 15.5px; line-height: 40px; color: rgb{{ProdChangeColor}};">{{ProdChange}}</h4>
+                </div>
+            </div>
         </div>
         <div class="span5" style="border-top: 1px solid #C0C0C0; border-right: none; border-bottom: none; border-left: none;">
           <span class="align-center" style="text-align: center">{{NewMembershipsLang}}</span>
-          <h1 class="align-center" style="text-align: center">{{NewMemberships}}</h1>
+          <div class="align-center" style="text-align: center">
+                <div class="span3">
+                    <h2 class="align-center" style="text-align: left; font-size: 28.5px;">{{NewMemberships}}</h2>
+                </div>
+                <div class="span1">
+                    <h4 class="align-center" style="text-align: right; font-size: 15.5px; line-height: 40px; color: rgb{{MemChangeColor}};">{{MemChange}}</h4>
+                </div>
+            </div>
         </div>
       </div>
       <div class="row">
         <div class="span5" style="border-top: 1px solid #C0C0C0; border-right: none; border-bottom: none; border-left: none;">
           <span class="align-center" style="text-align: center">{{OnlineBookingsLang}}</span>
-          <h1 class="align-center" style="text-align: center">{{OnlineBookings}}</h1>
+          <div class="align-center" style="text-align: center">
+                <div class="span3">
+                    <h2 class="align-center" style="text-align: left; font-size: 28.5px;">{{OnlineBookings}}</h2>
+                </div>
+                <div class="span1">
+                    <h4 class="align-center" style="text-align: right; font-size: 15.5px; line-height: 40px; color: rgb{{OnlineChangeColor}};">{{OnlineChange}}</h4>
+                </div>
+            </div>
         </div>
         <div class="span5" style="border-top: 1px solid #C0C0C0; border-right: none; border-bottom: none; border-left: none;">
           <span class="align-center" style="text-align: center">{{AttendanceLang}}</span>
-          <h1 class="align-center" style="text-align: center">{{Attendance}}</h1>
+          <div class="align-center" style="text-align: center">
+                <div class="span3">
+                    <h2 class="align-center" style="text-align: left; font-size: 28.5px;">{{Attendance}}</h2>
+                </div>
+                <div class="span1">
+                    <h4 class="align-center" style="text-align: right; font-size: 15.5px; line-height: 40px; color: rgb{{AttendChangeColor}};">{{AttendChange}}</h4>
+                </div>
+            </div>
         </div>
         <div class="span5" style="border-top: 1px solid #C0C0C0; border-right: none; border-bottom: none; border-left: none;">
           <span class="align-center" style="text-align: center">{{FirstVisitsLang}}</span>
-          <h1 class="align-center" style="text-align: center">{{FirstVisits}}</h1>
+          <div class="align-center" style="text-align: center">
+                <div class="span3">
+                    <h2 class="align-center" style="text-align: left; font-size: 28.5px;">{{FirstVisits}}</h2>
+                </div>
+                <div class="span1">
+                    <h4 class="align-center" style="text-align: right; font-size: 15.5px; line-height: 40px; color: rgb{{FVChangeColor}};">{{FVChange}}</h4>
+                </div>
+            </div>
         </div>
       </div>
     </div>

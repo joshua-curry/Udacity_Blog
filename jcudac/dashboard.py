@@ -1,3 +1,4 @@
+# coding: utf-8
 from google.appengine.api import memcache
 from google.appengine.ext import db
 import os
@@ -68,20 +69,65 @@ class Overview(webapp2.RequestHandler):
 		startdate=str(now.month)+'/1/'+str(now.year)
 		enddate=str(now.month)+'/'+str(now.day)+'/'+str(now.year)
 
+
+		values['SID'] = SID
+		values['startdate'] = startdate
+		values['enddate'] = enddate
+
 		#Sales
 		salessql = "SELECT SUM(tblSDPayments.SDPaymentAmount - tblSDPayments.ItemTax1 - tblSDPayments.ItemTax2 - tblSDPayments.ItemTax3 - tblSDPayments.ItemTax4 - tblSDPayments.ItemTax5) AS KDPValue FROM [Sales Details] INNER JOIN Sales ON [Sales Details].SaleID = Sales.SaleID INNER JOIN tblPayments ON Sales.SaleID = tblPayments.SaleID INNER JOIN tblSDPayments ON [Sales Details].SDID = tblSDPayments.SDID AND tblPayments.PaymentID = tblSDPayments.PaymentID INNER JOIN [Payment Types] ON tblPayments.PaymentMethod = [Payment Types].Item# WHERE (Sales.SaleDate BETWEEN '"+startdate+"' AND '"+enddate+"') AND ([Payment Types].CashEQ = 1) AND ([Sales Details].CategoryID != 21)"
 
 		salesapi = ApiCall(SID,salessql)
 		x =minidom.parseString(salesapi.read())
 		TotalSales = ''
+		TotalSalesNum=0
 		for row in x.getElementsByTagName("Row"):
 			try:
 				TotalSales+=format(int(math.floor(float(row.childNodes[0].childNodes[0].nodeValue))), ",d")
+				TotalSalesNum=float(row.childNodes[0].childNodes[0].nodeValue)
 			except:
 				pass
 		if TotalSales == '':
 			TotalSales='0'
 		values['TotalSales']='$'+TotalSales
+
+
+
+		#Sales Change
+		saleschangesql = "SELECT SUM(tblSDPayments.SDPaymentAmount - tblSDPayments.ItemTax1 - tblSDPayments.ItemTax2 - tblSDPayments.ItemTax3 - tblSDPayments.ItemTax4 - tblSDPayments.ItemTax5) AS KDPValue FROM [Sales Details] INNER JOIN Sales ON [Sales Details].SaleID = Sales.SaleID INNER JOIN tblPayments ON Sales.SaleID = tblPayments.SaleID INNER JOIN tblSDPayments ON [Sales Details].SDID = tblSDPayments.SDID AND tblPayments.PaymentID = tblSDPayments.PaymentID INNER JOIN [Payment Types] ON tblPayments.PaymentMethod = [Payment Types].Item# WHERE (Sales.SaleDate BETWEEN dateadd(day,datediff(day,'"+startdate+"', '"+enddate+"')*-1, dateadd(day,-1,'"+startdate+"')) AND '"+startdate+"') AND ([Payment Types].CashEQ = 1) AND ([Sales Details].CategoryID != 21)"
+
+		saleschangeapi = ApiCall(SID,saleschangesql)
+		x =minidom.parseString(saleschangeapi.read())
+		SalesChangeNum = 0
+		for row in x.getElementsByTagName("Row"):
+			try:
+				SalesChangeNum=float(row.childNodes[0].childNodes[0].nodeValue)
+			except:
+				pass
+		if not SalesChangeNum:
+			values['SalesChange']=u"▲100%"
+			values['SalesChangeColor']='(0, 170, 0)'
+		if TotalSalesNum==SalesChangeNum:
+			values['SalesChange']=u"►0%"
+			values['SalesChangeColor']='(255, 241, 13)'
+		elif SalesChangeNum==0:
+			values['SalesChange']=u"▲100%"
+			values['SalesChangeColor']='(0, 170, 0)'
+		elif TotalSalesNum==0:
+			values['SalesChange']=u"▼100%"
+			values['SalesChangeColor']='(255, 0, 0)'
+		else:
+			SalesCalc = TotalSalesNum-SalesChangeNum
+			SalesCalc = SalesCalc/SalesChangeNum
+			SalesCalc = SalesCalc*100
+
+			if SalesCalc < 0:
+				values['SalesChange']=u"▼"+format(abs(int(math.floor(SalesCalc))), ",d")+"%"
+				values['SalesChangeColor']='(255, 0, 0)'
+			elif SalesCalc > 0:
+				values['SalesChange']=u"▲"+format(abs(int(math.floor(SalesCalc))), ",d")+"%"
+				values['SalesChangeColor']='(0, 170, 0)'
+
 
 		#Product Sales
 		prodsql = "SELECT SUM(tblSDPayments.SDPaymentAmount - tblSDPayments.ItemTax1 - tblSDPayments.ItemTax2 - tblSDPayments.ItemTax3 - tblSDPayments.ItemTax4 - tblSDPayments.ItemTax5) AS KDPValue FROM [Sales Details] INNER JOIN Sales ON [Sales Details].SaleID = Sales.SaleID INNER JOIN tblPayments ON Sales.SaleID = tblPayments.SaleID INNER JOIN tblSDPayments ON [Sales Details].SDID = tblSDPayments.SDID AND tblPayments.PaymentID = tblSDPayments.PaymentID INNER JOIN [Payment Types] ON tblPayments.PaymentMethod = [Payment Types].Item# WHERE (Sales.SaleDate BETWEEN '"+startdate+"' AND '"+enddate+"') AND ([Payment Types].CashEQ = 1) AND ([Sales Details].CategoryID != 21) and [sales details].categoryid >25"
@@ -89,29 +135,105 @@ class Overview(webapp2.RequestHandler):
 		prodapi = ApiCall(SID,prodsql)
 		x =minidom.parseString(prodapi.read())
 		ProductSales = ''
+		TotalProdNum=0
 		for row in x.getElementsByTagName("Row"):
 			try:
 				ProductSales+=format(int(math.floor(float(row.childNodes[0].childNodes[0].nodeValue))), ",d")
+				TotalProdNum=int(math.floor(float(row.childNodes[0].childNodes[0].nodeValue)))
 			except:
 				pass
 		if ProductSales == '':
 			ProductSales='0'
 		values['ProductSales']='$'+ProductSales
 
+
+		#Prod Change
+		prodchangesql = "SELECT SUM(tblSDPayments.SDPaymentAmount - tblSDPayments.ItemTax1 - tblSDPayments.ItemTax2 - tblSDPayments.ItemTax3 - tblSDPayments.ItemTax4 - tblSDPayments.ItemTax5) AS KDPValue FROM [Sales Details] INNER JOIN Sales ON [Sales Details].SaleID = Sales.SaleID INNER JOIN tblPayments ON Sales.SaleID = tblPayments.SaleID INNER JOIN tblSDPayments ON [Sales Details].SDID = tblSDPayments.SDID AND tblPayments.PaymentID = tblSDPayments.PaymentID INNER JOIN [Payment Types] ON tblPayments.PaymentMethod = [Payment Types].Item# WHERE (Sales.SaleDate BETWEEN dateadd(day,datediff(day,'"+startdate+"', '"+enddate+"')*-1, dateadd(day,-1,'"+startdate+"')) AND '"+startdate+"') AND ([Payment Types].CashEQ = 1) AND ([Sales Details].CategoryID != 21) and [sales details].categoryid >25"
+
+		prodchangeapi = ApiCall(SID,prodchangesql)
+		x =minidom.parseString(prodchangeapi.read())
+		ProdChangeNum = 0
+		for row in x.getElementsByTagName("Row"):
+			try:
+				ProdChangeNum=float(row.childNodes[0].childNodes[0].nodeValue)
+			except:
+				pass
+		if not ProdChangeNum:
+			values['ProdChange']=u"▲100%"
+			values['ProdChangeColor']='(0, 170, 0)'
+		if TotalProdNum==ProdChangeNum:
+			values['ProdChange']=u"►0%"
+			values['ProdChangeColor']='(255, 241, 13)'
+		elif ProdChangeNum==0:
+			values['ProdChange']=u"▲100%"
+			values['ProdChangeColor']='(0, 170, 0)'
+		elif TotalProdNum==0:
+			values['ProdChange']=u"▼100%"
+			values['ProdChangeColor']='(255, 0, 0)'
+		else:
+			ProdCalc = TotalProdNum-ProdChangeNum
+			ProdCalc = ProdCalc/ProdChangeNum
+			ProdCalc = ProdCalc*100
+
+			if ProdCalc < 0:
+				values['ProdChange']=u"▼"+format(abs(int(math.floor(ProdCalc))), ",d")+"%"
+				values['ProdChangeColor']='(255, 0, 0)'
+			elif ProdCalc > 0:
+				values['ProdChange']=u"▲"+format(abs(int(math.floor(ProdCalc))), ",d")+"%"
+				values['ProdChangeColor']='(0, 170, 0)'
+
 		#New Members
 		memsql = "SELECT Count(*) AS KPIValue FROM (SELECT tblClientContracts.ClientID,Isnull(Sales.LocationID, CLIENTS.HomeStudio) AS LocationID FROM CLIENTS INNER JOIN tblClientContracts ON CLIENTS.ClientID = tblClientContracts.ClientID LEFT OUTER JOIN Sales INNER JOIN [Sales Details] ON Sales.SaleID = [Sales Details].SaleID ON tblClientContracts.ClientContractID = [Sales Details].ClientContractID WHERE ( tblClientContracts.AgreementDate between '"+startdate+"' and '"+enddate+"' ) AND ( tblClientContracts.Deleted = 0 ) AND ( tblClientContracts.AutoRenewClientContractID IS NULL ) GROUP  BY tblClientContracts.ClientID, Isnull(Sales.LocationID, CLIENTS.HomeStudio)) AS NewContract"
 		
-		memapi = ApiCall(SID,prodsql)
+		memapi = ApiCall(SID,memsql)
 		x =minidom.parseString(memapi.read())
 		NewMemberships = ''
+		TotalMemNum=0
 		for row in x.getElementsByTagName("Row"):
 			try:
 				NewMemberships+=format(int(math.floor(float(row.childNodes[0].childNodes[0].nodeValue))), ",d")
+				TotalMemNum=int(math.floor(float(row.childNodes[0].childNodes[0].nodeValue)))
 			except:
 				pass
 		if NewMemberships == '':
 			NewMemberships='0'
 		values['NewMemberships']=NewMemberships
+
+
+		#Mem Change
+		memchangesql = "SELECT Count(*) AS KPIValue FROM (SELECT tblClientContracts.ClientID,Isnull(Sales.LocationID, CLIENTS.HomeStudio) AS LocationID FROM CLIENTS INNER JOIN tblClientContracts ON CLIENTS.ClientID = tblClientContracts.ClientID LEFT OUTER JOIN Sales INNER JOIN [Sales Details] ON Sales.SaleID = [Sales Details].SaleID ON tblClientContracts.ClientContractID = [Sales Details].ClientContractID WHERE ( tblClientContracts.AgreementDate between dateadd(day,datediff(day,'"+startdate+"', '"+enddate+"')*-1, dateadd(day,-1,'"+startdate+"')) AND '"+startdate+"') AND ( tblClientContracts.Deleted = 0 ) AND ( tblClientContracts.AutoRenewClientContractID IS NULL ) GROUP  BY tblClientContracts.ClientID, Isnull(Sales.LocationID, CLIENTS.HomeStudio)) AS NewContract"
+
+		memchangeapi = ApiCall(SID,memchangesql)
+		x =minidom.parseString(memchangeapi.read())
+		MemChangeNum = 0
+		for row in x.getElementsByTagName("Row"):
+			try:
+				MemChangeNum=float(row.childNodes[0].childNodes[0].nodeValue)
+			except:
+				pass
+		if not MemChangeNum:
+			values['MemChange']=u"▲100%"
+			values['MemChangeColor']='(0, 170, 0)'
+		if TotalMemNum==MemChangeNum:
+			values['MemChange']=u"►0%"
+			values['MemChangeColor']='(255, 241, 13)'
+		elif MemChangeNum==0:
+			values['MemChange']=u"▲100%"
+			values['MemChangeColor']='(0, 170, 0)'
+		elif TotalMemNum==0:
+			values['MemChange']=u"▼100%"
+			values['MemChangeColor']='(255, 0, 0)'
+		else:
+			MemCalc = TotalMemNum-MemChangeNum
+			MemCalc = MemCalc/MemChangeNum
+			MemCalc = MemCalc*100
+
+			if MemCalc < 0:
+				values['MemChange']=u"▼"+format(abs(int(math.floor(MemCalc))), ",d")+"%"
+				values['MemChangeColor']='(255, 0, 0)'
+			elif MemCalc > 0:
+				values['MemChange']=u"▲"+format(abs(int(math.floor(MemCalc))), ",d")+"%"
+				values['MemChangeColor']='(0, 170, 0)'
 
 		#Online Bookings
 		onlinesql = "SELECT COUNT(*) AS KPIValue FROM [VISIT DATA] INNER JOIN tblTypeGroup ON [VISIT DATA].TypeGroup = tblTypeGroup.TypeGroupID WHERE (([VISIT DATA].ClassDate between '"+startdate+"' and '"+enddate+"') OR ([VISIT DATA].RequestDate between '"+startdate+"' and '"+enddate+"'))  AND ([VISIT DATA].Cancelled = 0) AND ([VISIT DATA].Missed = 0) AND ([VISIT DATA].WebScheduler = 1) AND (NOT ([VISIT DATA].TypeGroup IS NULL)) AND (NOT ([VISIT DATA].ClassDate IS NULL))"
@@ -119,14 +241,52 @@ class Overview(webapp2.RequestHandler):
 		memapi = ApiCall(SID,onlinesql)
 		x =minidom.parseString(memapi.read())
 		OnlineBookings = ''
+		TotalOnlineNum=0
 		for row in x.getElementsByTagName("Row"):
 			try:
 				OnlineBookings+=format(int(math.floor(float(row.childNodes[0].childNodes[0].nodeValue))), ",d")
+				TotalOnlineNum=int(math.floor(float(row.childNodes[0].childNodes[0].nodeValue)))
 			except:
 				pass
 		if OnlineBookings == '':
 			OnlineBookings='0'
 		values['OnlineBookings']=OnlineBookings
+
+
+		#Online Change
+		onlinechangesql = "SELECT COUNT(*) AS KPIValue FROM [VISIT DATA] INNER JOIN tblTypeGroup ON [VISIT DATA].TypeGroup = tblTypeGroup.TypeGroupID WHERE (([VISIT DATA].ClassDate between dateadd(day,datediff(day,'"+startdate+"', '"+enddate+"')*-1, dateadd(day,-1,'"+startdate+"')) OR ([VISIT DATA].RequestDate between dateadd(day,datediff(day,'"+startdate+"', '"+enddate+"')*-1, dateadd(day,-1,'"+startdate+"'))  AND ([VISIT DATA].Cancelled = 0) AND ([VISIT DATA].Missed = 0) AND ([VISIT DATA].WebScheduler = 1) AND (NOT ([VISIT DATA].TypeGroup IS NULL)) AND (NOT ([VISIT DATA].ClassDate IS NULL))"
+
+		onlinechangeapi = ApiCall(SID,onlinechangesql)
+		x =minidom.parseString(onlinechangeapi.read())
+		OnlineChangeNum = 0
+		for row in x.getElementsByTagName("Row"):
+			try:
+				OnlineChangeNum=float(row.childNodes[0].childNodes[0].nodeValue)
+			except:
+				pass
+		if not OnlineChangeNum:
+			values['OnlineChange']=u"▲100%"
+			values['OnlineChangeColor']='(0, 170, 0)'
+		if TotalOnlineNum==OnlineChangeNum:
+			values['OnlineChange']=u"►0%"
+			values['OnlineChangeColor']='(255, 241, 13)'
+		elif OnlineChangeNum==0:
+			values['OnlineChange']=u"▲100%"
+			values['OnlineChangeColor']='(0, 170, 0)'
+		elif TotalOnlineNum==0:
+			values['OnlineChange']=u"▼100%"
+			values['OnlineChangeColor']='(255, 0, 0)'
+		else:
+			OnlineCalc = TotalOnlineNum-OnlineChangeNum
+			OnlineCalc = OnlineCalc/OnlineChangeNum
+			OnlineCalc = OnlineCalc*100
+
+			if OnlineCalc < 0:
+				values['OnlineChange']=u"▼"+format(abs(int(math.floor(OnlineCalc))), ",d")+"%"
+				values['OnlineChangeColor']='(255, 0, 0)'
+			elif OnlineCalc > 0:
+				values['OnlineChange']=u"▲"+format(abs(int(math.floor(OnlineCalc))), ",d")+"%"
+				values['OnlineChangeColor']='(0, 170, 0)'
 
 		#Attendance
 		attendsql = "SELECT COUNT(*) AS KPIValue FROM [VISIT DATA] INNER JOIN tblTypeGroup ON [VISIT DATA].TypeGroup = tblTypeGroup.TypeGroupID WHERE (([VISIT DATA].ClassDate between '"+startdate+"' and '"+enddate+"') OR ([VISIT DATA].RequestDate between '"+startdate+"' and '"+enddate+"'))  AND ([VISIT DATA].Cancelled = 0) AND ([VISIT DATA].Missed = 0) AND (NOT ([VISIT DATA].TypeGroup IS NULL)) AND (NOT ([VISIT DATA].ClassDate IS NULL))"
@@ -134,14 +294,52 @@ class Overview(webapp2.RequestHandler):
 		attendapi = ApiCall(SID,attendsql)
 		x =minidom.parseString(attendapi.read())
 		Attendance = ''
+		TotalAttendNum=0
 		for row in x.getElementsByTagName("Row"):
 			try:
 				Attendance+=format(int(math.floor(float(row.childNodes[0].childNodes[0].nodeValue))), ",d")
+				TotalAttendNum=int(math.floor(float(row.childNodes[0].childNodes[0].nodeValue)))
 			except:
 				pass
 		if Attendance == '':
 			Attendance='0'
 		values['Attendance']=Attendance
+
+
+		#Attendance Change
+		attendchangesql = "SELECT COUNT(*) AS KPIValue FROM [VISIT DATA] INNER JOIN tblTypeGroup ON [VISIT DATA].TypeGroup = tblTypeGroup.TypeGroupID WHERE (([VISIT DATA].ClassDate between dateadd(day,datediff(day,'"+startdate+"', '"+enddate+"')*-1, dateadd(day,-1,'"+startdate+"')) OR ([VISIT DATA].RequestDate between dateadd(day,datediff(day,'"+startdate+"', '"+enddate+"')*-1, dateadd(day,-1,'"+startdate+"'))  AND ([VISIT DATA].Cancelled = 0) AND ([VISIT DATA].Missed = 0) AND (NOT ([VISIT DATA].TypeGroup IS NULL)) AND (NOT ([VISIT DATA].ClassDate IS NULL))"
+
+		attendchangeapi = ApiCall(SID,attendchangesql)
+		x =minidom.parseString(attendchangeapi.read())
+		AttendChangeNum = 0
+		for row in x.getElementsByTagName("Row"):
+			try:
+				AttendChangeNum=float(row.childNodes[0].childNodes[0].nodeValue)
+			except:
+				pass
+		if not AttendChangeNum:
+			values['AttendChange']=u"▲100%"
+			values['AttendChangeColor']='(0, 170, 0)'
+		if TotalAttendNum==AttendChangeNum:
+			values['AttendChange']=u"►0%"
+			values['AttendChangeColor']='(255, 241, 13)'
+		elif AttendChangeNum==0:
+			values['AttendChange']=u"▲100%"
+			values['AttendChangeColor']='(0, 170, 0)'
+		elif TotalAttendNum==0:
+			values['AttendChange']=u"▼100%"
+			values['AttendChangeColor']='(255, 0, 0)'
+		else:
+			AttendCalc = TotalAttendNum-AttendChangeNum
+			AttendCalc = AttendCalc/AttendChangeNum
+			AttendCalc = AttendCalc*100
+
+			if AttendCalc < 0:
+				values['AttendChange']=u"▼"+format(abs(int(math.floor(AttendCalc))), ",d")+"%"
+				values['AttendChangeColor']='(255, 0, 0)'
+			elif AttendCalc > 0:
+				values['AttendChange']=u"▲"+format(abs(int(math.floor(AttendCalc))), ",d")+"%"
+				values['AttendChangeColor']='(0, 170, 0)'
 
 		#FirstVisits
 		firstsql ="SELECT Count(*) AS KPIValue FROM CLIENTS WHERE (CLIENTS.Deleted = 0) AND ((NOT(CLIENTS.FirstClassDate IS NULL)) OR (NOT(CLIENTS.FirstApptDate IS NULL))) AND Case WHEN CLIENTS.FirstApptDate IS NULL THEN CLIENTS.FirstClassDate ELSE CLIENTS.FirstApptDate END between '"+startdate+"' and '"+enddate+"'"
@@ -149,14 +347,52 @@ class Overview(webapp2.RequestHandler):
 		firstapi = ApiCall(SID,firstsql)
 		x =minidom.parseString(firstapi.read())
 		FirstVisits = ''
+		TotalFVNum=0
 		for row in x.getElementsByTagName("Row"):
 			try:
 				FirstVisits+=format(int(math.floor(float(row.childNodes[0].childNodes[0].nodeValue))), ",d")
+				TotalFVNum=int(math.floor(float(row.childNodes[0].childNodes[0].nodeValue)))
 			except:
 				pass
 		if FirstVisits == '':
 			FirstVisits='0'
 		values['FirstVisits']=FirstVisits
+
+
+		#Attendance Change
+		fvchangesql = "SELECT Count(*) AS KPIValue FROM CLIENTS WHERE (CLIENTS.Deleted = 0) AND ((NOT(CLIENTS.FirstClassDate IS NULL)) OR (NOT(CLIENTS.FirstApptDate IS NULL))) AND Case WHEN CLIENTS.FirstApptDate IS NULL THEN CLIENTS.FirstClassDate ELSE CLIENTS.FirstApptDate END between dateadd(day,datediff(day,'"+startdate+"', '"+enddate+"')*-1, dateadd(day,-1,'"+startdate+"')"
+
+		fvchangeapi = ApiCall(SID,fvchangesql)
+		x =minidom.parseString(fvchangeapi.read())
+		FVChangeNum = 0
+		for row in x.getElementsByTagName("Row"):
+			try:
+				FVChangeNum=float(row.childNodes[0].childNodes[0].nodeValue)
+			except:
+				pass
+		if not FVChangeNum:
+			values['FVChange']=u"▲100%"
+			values['FVChangeColor']='(0, 170, 0)'
+		if TotalFVNum==FVChangeNum:
+			values['FVChange']=u"►0%"
+			values['FVChangeColor']='(255, 241, 13)'
+		elif FVChangeNum==0:
+			values['FVChange']=u"▲100%"
+			values['FVChangeColor']='(0, 170, 0)'
+		elif TotalFVNum==0:
+			values['FVChange']=u"▼100%"
+			values['FVChangeColor']='(255, 0, 0)'
+		else:
+			FVCalc = TotalFVNum-FVChangeNum
+			FVCalc = FVCalc/FVChangeNum
+			FVCalc = FVCalc*100
+
+			if FVCalc < 0:
+				values['FVChange']=u"▼"+format(abs(int(math.floor(FVCalc))), ",d")+"%"
+				values['FVChangeColor']='(255, 0, 0)'
+			elif FVCalc > 0:
+				values['FVChange']=u"▲"+format(abs(int(math.floor(FVCalc))), ",d")+"%"
+				values['FVChangeColor']='(0, 170, 0)'
 
 		#Sales YOY
 		Sales2011YOY = {'01/2011':0,'02/2011':0,'03/2011':0,'04/2011':0,'05/2011':0,'06/2011':0,'07/2011':0,'08/2011':0,'09/2011':0,'10/2011':0,'11/2011':0,'12/2011':0}
@@ -239,16 +475,11 @@ class Overview(webapp2.RequestHandler):
 
 
 		#Memberships YOY
-		Membership2011YOY = {'01/2011': 'null','02/2011': 'null','03/2011': 'null','04/2011': 'null','05/2011': 'null','06/2011': 'null','07/2011': 'null','08/2011': 'null','09/2011': 'null','10/2011': 'null','11/2011': 'null','12/2011': 'null'}
-
-		Membership2012YOY = {'01/2012': 'null','02/2012': 'null','03/2012': 'null','04/2012': 'null','05/2012': 'null','06/2012': 'null','07/2012': 'null','08/2012': 'null','09/2012': 'null','10/2012': 'null','11/2012': 'null','12/2012': 'null'}
-
-		Membership2013YOY = {'01/2013': 'null','02/2013': 'null','03/2013': 'null','04/2013': 'null','05/2013': 'null','06/2013': 'null','07/2013': 'null','08/2013': 'null','09/2013': 'null','10/2013': 'null','11/2013': 'null','12/2013': 'null'}
+		MembershipYOY = {'03/2012': 'null','04/2012': 'null','05/2012': 'null','06/2012': 'null','07/2012': 'null','08/2012': 'null','09/2012': 'null','10/2012': 'null','11/2012': 'null','12/2012': 'null','01/2013': 'null','02/2013': 'null'}
 
 
 		membership2011 = ''
-		membership2012 = ''
-		membership2013 = ''
+
 
 		
 		memyoysql ="SELECT RIGHT('00' + Cast(Datepart(month, tblAggregateKPI.kpidate) AS NVARCHAR(max)), 2) + '/' + Cast(Datepart(year, tblAggregateKPI.kpidate) AS NVARCHAR(max)) as date, kpivalue FROM tblAggregateKPI INNER JOIN (SELECT MAX(KPIDate) AS kpidate FROM tblAggregateKPI AS tblAggregateKPI_1 WHERE (KPITypeID = 15) AND (RefCatID = 1) GROUP BY CAST(DATEPART(month, KPIDate) AS NVARCHAR(MAX)) + '/' + CAST(DATEPART(year, KPIDate) AS NVARCHAR(MAX))) AS derivedtbl_1 ON  tblAggregateKPI.KPIDate = derivedtbl_1.kpidate WHERE (KPITypeID = 15) AND (RefCatID = 1) and tblAggregateKPI.kpidate between '1/1/2011' and getdate()"
@@ -258,25 +489,15 @@ class Overview(webapp2.RequestHandler):
 		MembershipYear = ''
 		for row in x.getElementsByTagName("Row"):
 			try:
-				if str(row.childNodes[0].childNodes[0].nodeValue) in Membership2011YOY:
-					Membership2011YOY[str(row.childNodes[0].childNodes[0].nodeValue)]=str(int(math.floor(float(row.childNodes[1].childNodes[0].nodeValue))))
-				if str(row.childNodes[0].childNodes[0].nodeValue) in Membership2012YOY:
-					Membership2012YOY[str(row.childNodes[0].childNodes[0].nodeValue)]=str(int(math.floor(float(row.childNodes[1].childNodes[0].nodeValue))))
-				if  str(row.childNodes[0].childNodes[0].nodeValue) in Membership2013YOY:
-					Membership2013YOY[str(row.childNodes[0].childNodes[0].nodeValue)]=str(int(math.floor(float(row.childNodes[1].childNodes[0].nodeValue))))
+				if str(row.childNodes[0].childNodes[0].nodeValue) in MembershipYOY:
+					MembershipYOY[str(row.childNodes[0].childNodes[0].nodeValue)]=str(int(math.floor(float(row.childNodes[1].childNodes[0].nodeValue))))
 			except:
 				pass
-		for e,v in sorted(Membership2011YOY.items()):
+		for e,v in sorted(MembershipYOY.items()):
 			membership2011+=str(v)+","
-		for e,v in sorted(Membership2012YOY.items()):
-			membership2012+=str(v)+","
-		for e,v in sorted(Membership2013YOY.items()):
-			membership2013+=str(v)+","
 
 
-		values['Membership2011YOY']=membership2011[:-1]
-		values['Membership2012YOY']=membership2012[:-1]
-		values['Membership2013YOY']=membership2013[:-1]
+		values['MembershipYOY']=membership2011[:-1]
 
 		
 		values['Selected2']=' selected'
@@ -314,110 +535,6 @@ class Overview(webapp2.RequestHandler):
 			enddate = str(now.month)+'/'+str(now.day)+'/'+str(now.year)
 
 		values = {}
-		# if not month:
-		# 	values['TotalSales']='$4,073'
-		# 	values['ProductSales']='$2,984'
-		# 	values['NewMemberships']='17'
-		# 	values['OnlineBookings']='234'
-		# 	values['Attendance']='8,458'
-		# 	values['FirstVisits']='58'
-		# 	values['Selected1']=' selected'
-		# if month=='1':
-		# 	values['TotalSales']='$425,000'
-		# 	values['ProductSales']='$2,000'
-		# 	values['NewMemberships']='52'
-		# 	values['OnlineBookings']='230'
-		# 	values['Attendance']='3,254'
-		# 	values['FirstVisits']='73'
-		# 	values['Selected1']=' selected'
-		# if month=='2':
-		# 	values['TotalSales']='$36'
-		# 	values['ProductSales']='$35'
-		# 	values['NewMemberships']='46'
-		# 	values['OnlineBookings']='4'
-		# 	values['Attendance']='334'
-		# 	values['FirstVisits']='45'
-		# 	values['Selected2']=' selected'
-		# if month=='3':
-		# 	values['TotalSales']='$4,000'
-		# 	values['ProductSales']='$7000'
-		# 	values['NewMemberships']='6'
-		# 	values['OnlineBookings']='345'
-		# 	values['Attendance']='564'
-		# 	values['FirstVisits']='34'
-		# 	values['Selected3']=' selected'
-		# if month=='4':
-		# 	values['TotalSales']='$65,352'
-		# 	values['ProductSales']='$54,245'
-		# 	values['NewMemberships']='235'
-		# 	values['OnlineBookings']='345'
-		# 	values['Attendance']='3,465'
-		# 	values['FirstVisits']='23'
-		# 	values['Selected4']=' selected'
-		# if month=='5':
-		# 	values['TotalSales']='$8,568'
-		# 	values['ProductSales']='$457,475'
-		# 	values['NewMemberships']='56'
-		# 	values['OnlineBookings']='26'
-		# 	values['Attendance']='3,955'
-		# 	values['FirstVisits']='73'
-		# 	values['Selected5']=' selected'
-		# if month=='6':
-		# 	values['TotalSales']='$346'
-		# 	values['ProductSales']='$373'
-		# 	values['NewMemberships']='34'
-		# 	values['OnlineBookings']='6'
-		# 	values['Attendance']='345,235'
-		# 	values['FirstVisits']='654'
-		# 	values['Selected6']=' selected'
-		# if month=='7':
-		# 	values['TotalSales']='$4,346'
-		# 	values['ProductSales']='$28,456'
-		# 	values['NewMemberships']='48'
-		# 	values['OnlineBookings']='36'
-		# 	values['Attendance']='62,346'
-		# 	values['FirstVisits']='235'
-		# 	values['Selected7']=' selected'
-		# if month=='8':
-		# 	values['TotalSales']='$235,255'
-		# 	values['ProductSales']='$254,234'
-		# 	values['NewMemberships']='74'
-		# 	values['OnlineBookings']='657'
-		# 	values['Attendance']='33,473'
-		# 	values['FirstVisits']='56'
-		# 	values['Selected8']=' selected'
-		# if month=='9':
-		# 	values['TotalSales']='$4,765,340'
-		# 	values['ProductSales']='$2,555'
-		# 	values['NewMemberships']='234'
-		# 	values['OnlineBookings']='346'
-		# 	values['Attendance']='24,254'
-		# 	values['FirstVisits']='3'
-		# 	values['Selected9']=' selected'
-		# if month=='10':
-		# 	values['TotalSales']='$62,356'
-		# 	values['ProductSales']='$2,346'
-		# 	values['NewMemberships']='23'
-		# 	values['OnlineBookings']='46'
-		# 	values['Attendance']='3,343'
-		# 	values['FirstVisits']='42'
-		# 	values['Selected10']=' selected'
-		# if month=='11':
-		# 	values['TotalSales']='$234,245'
-		# 	values['ProductSales']='$245,223'
-		# 	values['NewMemberships']='2'
-		# 	values['OnlineBookings']='60'
-		# 	values['Attendance']='34,254'
-		# 	values['FirstVisits']='743'
-		# 	values['Selected11']=' selected'
-		# if month=='12':
-		# 	values['TotalSales']='$4,567'
-		# 	values['ProductSales']='$1,111'
-		# 	values['NewMemberships']='11'
-		# 	values['OnlineBookings']='235'
-		# 	values['Attendance']='3,111'
-		# 	values['FirstVisits']='23'
-		# 	values['Selected12']=' selected'
 
 		if not localization:
 			values['categories1']="'Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'"
@@ -479,29 +596,106 @@ class Overview(webapp2.RequestHandler):
 		salesapi = ApiCall(SID,salessql)
 		x =minidom.parseString(salesapi.read())
 		TotalSales = ''
+		TotalSalesNum=0
 		for row in x.getElementsByTagName("Row"):
 			try:
 				TotalSales+=format(int(math.floor(float(row.childNodes[0].childNodes[0].nodeValue))), ",d")
+				TotalSalesNum=float(row.childNodes[0].childNodes[0].nodeValue)
 			except:
 				pass
 		if TotalSales == '':
 			TotalSales='0'
 		values['TotalSales']='$'+TotalSales
 
-		#ProductSales
+
+
+		#Sales Change
+		saleschangesql = "SELECT SUM(tblSDPayments.SDPaymentAmount - tblSDPayments.ItemTax1 - tblSDPayments.ItemTax2 - tblSDPayments.ItemTax3 - tblSDPayments.ItemTax4 - tblSDPayments.ItemTax5) AS KDPValue FROM [Sales Details] INNER JOIN Sales ON [Sales Details].SaleID = Sales.SaleID INNER JOIN tblPayments ON Sales.SaleID = tblPayments.SaleID INNER JOIN tblSDPayments ON [Sales Details].SDID = tblSDPayments.SDID AND tblPayments.PaymentID = tblSDPayments.PaymentID INNER JOIN [Payment Types] ON tblPayments.PaymentMethod = [Payment Types].Item# WHERE (Sales.SaleDate BETWEEN dateadd(day,datediff(day,'"+startdate+"', '"+enddate+"')*-1, dateadd(day,-1,'"+startdate+"')) AND '"+startdate+"') AND ([Payment Types].CashEQ = 1) AND ([Sales Details].CategoryID != 21)"
+
+		saleschangeapi = ApiCall(SID,saleschangesql)
+		x =minidom.parseString(saleschangeapi.read())
+		SalesChangeNum = 0
+		for row in x.getElementsByTagName("Row"):
+			try:
+				SalesChangeNum=float(row.childNodes[0].childNodes[0].nodeValue)
+			except:
+				pass
+		if not SalesChangeNum:
+			values['SalesChange']=u"▲100%"
+			values['SalesChangeColor']='(0, 170, 0)'
+		if TotalSalesNum==SalesChangeNum:
+			values['SalesChange']=u"►0%"
+			values['SalesChangeColor']='(255, 241, 13)'
+		elif SalesChangeNum==0:
+			values['SalesChange']=u"▲100%"
+			values['SalesChangeColor']='(0, 170, 0)'
+		elif TotalSalesNum==0:
+			values['SalesChange']=u"▼100%"
+			values['SalesChangeColor']='(255, 0, 0)'
+		else:
+			SalesCalc = TotalSalesNum-SalesChangeNum
+			SalesCalc = SalesCalc/SalesChangeNum
+			SalesCalc = SalesCalc*100
+
+			if SalesCalc < 0:
+				values['SalesChange']=u"▼"+format(abs(int(math.floor(SalesCalc))), ",d")+"%"
+				values['SalesChangeColor']='(255, 0, 0)'
+			elif SalesCalc > 0:
+				values['SalesChange']=u"▲"+format(abs(int(math.floor(SalesCalc))), ",d")+"%"
+				values['SalesChangeColor']='(0, 170, 0)'
+
+		#Product Sales
 		prodsql = "SELECT SUM(tblSDPayments.SDPaymentAmount - tblSDPayments.ItemTax1 - tblSDPayments.ItemTax2 - tblSDPayments.ItemTax3 - tblSDPayments.ItemTax4 - tblSDPayments.ItemTax5) AS KDPValue FROM [Sales Details] INNER JOIN Sales ON [Sales Details].SaleID = Sales.SaleID INNER JOIN tblPayments ON Sales.SaleID = tblPayments.SaleID INNER JOIN tblSDPayments ON [Sales Details].SDID = tblSDPayments.SDID AND tblPayments.PaymentID = tblSDPayments.PaymentID INNER JOIN [Payment Types] ON tblPayments.PaymentMethod = [Payment Types].Item# WHERE (Sales.SaleDate BETWEEN '"+startdate+"' AND '"+enddate+"') AND ([Payment Types].CashEQ = 1) AND ([Sales Details].CategoryID != 21) and [sales details].categoryid >25"
 		
 		prodapi = ApiCall(SID,prodsql)
 		x =minidom.parseString(prodapi.read())
 		ProductSales = ''
+		TotalProdNum=0
 		for row in x.getElementsByTagName("Row"):
 			try:
 				ProductSales+=format(int(math.floor(float(row.childNodes[0].childNodes[0].nodeValue))), ",d")
+				TotalProdNum=int(math.floor(float(row.childNodes[0].childNodes[0].nodeValue)))
 			except:
 				pass
 		if ProductSales == '':
 			ProductSales='0'
 		values['ProductSales']='$'+ProductSales
+
+
+		#Prod Change
+		prodchangesql = "SELECT SUM(tblSDPayments.SDPaymentAmount - tblSDPayments.ItemTax1 - tblSDPayments.ItemTax2 - tblSDPayments.ItemTax3 - tblSDPayments.ItemTax4 - tblSDPayments.ItemTax5) AS KDPValue FROM [Sales Details] INNER JOIN Sales ON [Sales Details].SaleID = Sales.SaleID INNER JOIN tblPayments ON Sales.SaleID = tblPayments.SaleID INNER JOIN tblSDPayments ON [Sales Details].SDID = tblSDPayments.SDID AND tblPayments.PaymentID = tblSDPayments.PaymentID INNER JOIN [Payment Types] ON tblPayments.PaymentMethod = [Payment Types].Item# WHERE (Sales.SaleDate BETWEEN dateadd(day,datediff(day,'"+startdate+"', '"+enddate+"')*-1, dateadd(day,-1,'"+startdate+"')) AND '"+startdate+"') AND ([Payment Types].CashEQ = 1) AND ([Sales Details].CategoryID != 21) and [sales details].categoryid >25"
+
+		prodchangeapi = ApiCall(SID,prodchangesql)
+		x =minidom.parseString(prodchangeapi.read())
+		ProdChangeNum = 0
+		for row in x.getElementsByTagName("Row"):
+			try:
+				ProdChangeNum=float(row.childNodes[0].childNodes[0].nodeValue)
+			except:
+				pass
+		if not ProdChangeNum:
+			values['ProdChange']=u"▲100%"
+			values['ProdChangeColor']='(0, 170, 0)'
+		if TotalProdNum==ProdChangeNum:
+			values['ProdChange']=u"►0%"
+			values['ProdChangeColor']='(255, 241, 13)'
+		elif ProdChangeNum==0:
+			values['ProdChange']=u"▲100%"
+			values['ProdChangeColor']='(0, 170, 0)'
+		elif TotalProdNum==0:
+			values['ProdChange']=u"▼100%"
+			values['ProdChangeColor']='(255, 0, 0)'
+		else:
+			ProdCalc = TotalProdNum-ProdChangeNum
+			ProdCalc = ProdCalc/ProdChangeNum
+			ProdCalc = ProdCalc*100
+
+			if ProdCalc < 0:
+				values['ProdChange']=u"▼"+format(abs(int(math.floor(ProdCalc))), ",d")+"%"
+				values['ProdChangeColor']='(255, 0, 0)'
+			elif ProdCalc > 0:
+				values['ProdChange']=u"▲"+format(abs(int(math.floor(ProdCalc))), ",d")+"%"
+				values['ProdChangeColor']='(0, 170, 0)'
 
 		#New Members
 		memsql = "SELECT Count(*) AS KPIValue FROM (SELECT tblClientContracts.ClientID,Isnull(Sales.LocationID, CLIENTS.HomeStudio) AS LocationID FROM CLIENTS INNER JOIN tblClientContracts ON CLIENTS.ClientID = tblClientContracts.ClientID LEFT OUTER JOIN Sales INNER JOIN [Sales Details] ON Sales.SaleID = [Sales Details].SaleID ON tblClientContracts.ClientContractID = [Sales Details].ClientContractID WHERE ( tblClientContracts.AgreementDate between '"+startdate+"' and '"+enddate+"' ) AND ( tblClientContracts.Deleted = 0 ) AND ( tblClientContracts.AutoRenewClientContractID IS NULL ) GROUP  BY tblClientContracts.ClientID, Isnull(Sales.LocationID, CLIENTS.HomeStudio)) AS NewContract"
@@ -509,14 +703,52 @@ class Overview(webapp2.RequestHandler):
 		memapi = ApiCall(SID,memsql)
 		x =minidom.parseString(memapi.read())
 		NewMemberships = ''
+		TotalMemNum=0
 		for row in x.getElementsByTagName("Row"):
 			try:
 				NewMemberships+=format(int(math.floor(float(row.childNodes[0].childNodes[0].nodeValue))), ",d")
+				TotalMemNum=int(math.floor(float(row.childNodes[0].childNodes[0].nodeValue)))
 			except:
 				pass
 		if NewMemberships == '':
 			NewMemberships='0'
 		values['NewMemberships']=NewMemberships
+
+
+		#Mem Change
+		memchangesql = "SELECT Count(*) AS KPIValue FROM (SELECT tblClientContracts.ClientID,Isnull(Sales.LocationID, CLIENTS.HomeStudio) AS LocationID FROM CLIENTS INNER JOIN tblClientContracts ON CLIENTS.ClientID = tblClientContracts.ClientID LEFT OUTER JOIN Sales INNER JOIN [Sales Details] ON Sales.SaleID = [Sales Details].SaleID ON tblClientContracts.ClientContractID = [Sales Details].ClientContractID WHERE ( tblClientContracts.AgreementDate between dateadd(day,datediff(day,'"+startdate+"', '"+enddate+"')*-1, dateadd(day,-1,'"+startdate+"')) AND '"+startdate+"') AND ( tblClientContracts.Deleted = 0 ) AND ( tblClientContracts.AutoRenewClientContractID IS NULL ) GROUP  BY tblClientContracts.ClientID, Isnull(Sales.LocationID, CLIENTS.HomeStudio)) AS NewContract"
+
+		memchangeapi = ApiCall(SID,memchangesql)
+		x =minidom.parseString(memchangeapi.read())
+		MemChangeNum = 0
+		for row in x.getElementsByTagName("Row"):
+			try:
+				MemChangeNum=float(row.childNodes[0].childNodes[0].nodeValue)
+			except:
+				pass
+		if not MemChangeNum:
+			values['MemChange']=u"▲100%"
+			values['MemChangeColor']='(0, 170, 0)'
+		if TotalMemNum==MemChangeNum:
+			values['MemChange']=u"►0%"
+			values['MemChangeColor']='(255, 241, 13)'
+		elif MemChangeNum==0:
+			values['MemChange']=u"▲100%"
+			values['MemChangeColor']='(0, 170, 0)'
+		elif TotalMemNum==0:
+			values['MemChange']=u"▼100%"
+			values['MemChangeColor']='(255, 0, 0)'
+		else:
+			MemCalc = TotalMemNum-MemChangeNum
+			MemCalc = MemCalc/MemChangeNum
+			MemCalc = MemCalc*100
+
+			if MemCalc < 0:
+				values['MemChange']=u"▼"+format(abs(int(math.floor(MemCalc))), ",d")+"%"
+				values['MemChangeColor']='(255, 0, 0)'
+			elif MemCalc > 0:
+				values['MemChange']=u"▲"+format(abs(int(math.floor(MemCalc))), ",d")+"%"
+				values['MemChangeColor']='(0, 170, 0)'
 
 		#Online Bookings
 		onlinesql = "SELECT COUNT(*) AS KPIValue FROM [VISIT DATA] INNER JOIN tblTypeGroup ON [VISIT DATA].TypeGroup = tblTypeGroup.TypeGroupID WHERE (([VISIT DATA].ClassDate between '"+startdate+"' and '"+enddate+"') OR ([VISIT DATA].RequestDate between '"+startdate+"' and '"+enddate+"'))  AND ([VISIT DATA].Cancelled = 0) AND ([VISIT DATA].Missed = 0) AND ([VISIT DATA].WebScheduler = 1) AND (NOT ([VISIT DATA].TypeGroup IS NULL)) AND (NOT ([VISIT DATA].ClassDate IS NULL))"
@@ -524,14 +756,52 @@ class Overview(webapp2.RequestHandler):
 		memapi = ApiCall(SID,onlinesql)
 		x =minidom.parseString(memapi.read())
 		OnlineBookings = ''
+		TotalOnlineNum=0
 		for row in x.getElementsByTagName("Row"):
 			try:
 				OnlineBookings+=format(int(math.floor(float(row.childNodes[0].childNodes[0].nodeValue))), ",d")
+				TotalOnlineNum=int(math.floor(float(row.childNodes[0].childNodes[0].nodeValue)))
 			except:
 				pass
 		if OnlineBookings == '':
 			OnlineBookings='0'
 		values['OnlineBookings']=OnlineBookings
+
+
+		#Online Change
+		onlinechangesql = "SELECT COUNT(*) AS KPIValue FROM [VISIT DATA] INNER JOIN tblTypeGroup ON [VISIT DATA].TypeGroup = tblTypeGroup.TypeGroupID WHERE (([VISIT DATA].ClassDate between dateadd(day,datediff(day,'"+startdate+"', '"+enddate+"')*-1, dateadd(day,-1,'"+startdate+"')) OR ([VISIT DATA].RequestDate between dateadd(day,datediff(day,'"+startdate+"', '"+enddate+"')*-1, dateadd(day,-1,'"+startdate+"'))  AND ([VISIT DATA].Cancelled = 0) AND ([VISIT DATA].Missed = 0) AND ([VISIT DATA].WebScheduler = 1) AND (NOT ([VISIT DATA].TypeGroup IS NULL)) AND (NOT ([VISIT DATA].ClassDate IS NULL))"
+
+		onlinechangeapi = ApiCall(SID,onlinechangesql)
+		x =minidom.parseString(onlinechangeapi.read())
+		OnlineChangeNum = 0
+		for row in x.getElementsByTagName("Row"):
+			try:
+				OnlineChangeNum=float(row.childNodes[0].childNodes[0].nodeValue)
+			except:
+				pass
+		if not OnlineChangeNum:
+			values['OnlineChange']=u"▲100%"
+			values['OnlineChangeColor']='(0, 170, 0)'
+		if TotalOnlineNum==OnlineChangeNum:
+			values['OnlineChange']=u"►0%"
+			values['OnlineChangeColor']='(255, 241, 13)'
+		elif OnlineChangeNum==0:
+			values['OnlineChange']=u"▲100%"
+			values['OnlineChangeColor']='(0, 170, 0)'
+		elif TotalOnlineNum==0:
+			values['OnlineChange']=u"▼100%"
+			values['OnlineChangeColor']='(255, 0, 0)'
+		else:
+			OnlineCalc = TotalOnlineNum-OnlineChangeNum
+			OnlineCalc = OnlineCalc/OnlineChangeNum
+			OnlineCalc = OnlineCalc*100
+
+			if OnlineCalc < 0:
+				values['OnlineChange']=u"▼"+format(abs(int(math.floor(OnlineCalc))), ",d")+"%"
+				values['OnlineChangeColor']='(255, 0, 0)'
+			elif OnlineCalc > 0:
+				values['OnlineChange']=u"▲"+format(abs(int(math.floor(OnlineCalc))), ",d")+"%"
+				values['OnlineChangeColor']='(0, 170, 0)'
 
 		#Attendance
 		attendsql = "SELECT COUNT(*) AS KPIValue FROM [VISIT DATA] INNER JOIN tblTypeGroup ON [VISIT DATA].TypeGroup = tblTypeGroup.TypeGroupID WHERE (([VISIT DATA].ClassDate between '"+startdate+"' and '"+enddate+"') OR ([VISIT DATA].RequestDate between '"+startdate+"' and '"+enddate+"'))  AND ([VISIT DATA].Cancelled = 0) AND ([VISIT DATA].Missed = 0) AND (NOT ([VISIT DATA].TypeGroup IS NULL)) AND (NOT ([VISIT DATA].ClassDate IS NULL))"
@@ -539,14 +809,52 @@ class Overview(webapp2.RequestHandler):
 		attendapi = ApiCall(SID,attendsql)
 		x =minidom.parseString(attendapi.read())
 		Attendance = ''
+		TotalAttendNum=0
 		for row in x.getElementsByTagName("Row"):
 			try:
 				Attendance+=format(int(math.floor(float(row.childNodes[0].childNodes[0].nodeValue))), ",d")
+				TotalAttendNum=int(math.floor(float(row.childNodes[0].childNodes[0].nodeValue)))
 			except:
 				pass
 		if Attendance == '':
 			Attendance='0'
 		values['Attendance']=Attendance
+
+
+		#Attendance Change
+		attendchangesql = "SELECT COUNT(*) AS KPIValue FROM [VISIT DATA] INNER JOIN tblTypeGroup ON [VISIT DATA].TypeGroup = tblTypeGroup.TypeGroupID WHERE (([VISIT DATA].ClassDate between dateadd(day,datediff(day,'"+startdate+"', '"+enddate+"')*-1, dateadd(day,-1,'"+startdate+"')) OR ([VISIT DATA].RequestDate between dateadd(day,datediff(day,'"+startdate+"', '"+enddate+"')*-1, dateadd(day,-1,'"+startdate+"'))  AND ([VISIT DATA].Cancelled = 0) AND ([VISIT DATA].Missed = 0) AND (NOT ([VISIT DATA].TypeGroup IS NULL)) AND (NOT ([VISIT DATA].ClassDate IS NULL))"
+
+		attendchangeapi = ApiCall(SID,attendchangesql)
+		x =minidom.parseString(attendchangeapi.read())
+		AttendChangeNum = 0
+		for row in x.getElementsByTagName("Row"):
+			try:
+				AttendChangeNum=float(row.childNodes[0].childNodes[0].nodeValue)
+			except:
+				pass
+		if not AttendChangeNum:
+			values['AttendChange']=u"▲100%"
+			values['AttendChangeColor']='(0, 170, 0)'
+		if TotalAttendNum==AttendChangeNum:
+			values['AttendChange']=u"►0%"
+			values['AttendChangeColor']='(255, 241, 13)'
+		elif AttendChangeNum==0:
+			values['AttendChange']=u"▲100%"
+			values['AttendChangeColor']='(0, 170, 0)'
+		elif TotalAttendNum==0:
+			values['AttendChange']=u"▼100%"
+			values['AttendChangeColor']='(255, 0, 0)'
+		else:
+			AttendCalc = TotalAttendNum-AttendChangeNum
+			AttendCalc = AttendCalc/AttendChangeNum
+			AttendCalc = AttendCalc*100
+
+			if AttendCalc < 0:
+				values['AttendChange']=u"▼"+format(abs(int(math.floor(AttendCalc))), ",d")+"%"
+				values['AttendChangeColor']='(255, 0, 0)'
+			elif AttendCalc > 0:
+				values['AttendChange']=u"▲"+format(abs(int(math.floor(AttendCalc))), ",d")+"%"
+				values['AttendChangeColor']='(0, 170, 0)'
 
 		#FirstVisits
 		firstsql ="SELECT Count(*) AS KPIValue FROM CLIENTS WHERE (CLIENTS.Deleted = 0) AND ((NOT(CLIENTS.FirstClassDate IS NULL)) OR (NOT(CLIENTS.FirstApptDate IS NULL))) AND Case WHEN CLIENTS.FirstApptDate IS NULL THEN CLIENTS.FirstClassDate ELSE CLIENTS.FirstApptDate END between '"+startdate+"' and '"+enddate+"'"
@@ -554,14 +862,52 @@ class Overview(webapp2.RequestHandler):
 		firstapi = ApiCall(SID,firstsql)
 		x =minidom.parseString(firstapi.read())
 		FirstVisits = ''
+		TotalFVNum=0
 		for row in x.getElementsByTagName("Row"):
 			try:
 				FirstVisits+=format(int(math.floor(float(row.childNodes[0].childNodes[0].nodeValue))), ",d")
+				TotalFVNum=int(math.floor(float(row.childNodes[0].childNodes[0].nodeValue)))
 			except:
 				pass
 		if FirstVisits == '':
 			FirstVisits='0'
 		values['FirstVisits']=FirstVisits
+
+
+		#Attendance Change
+		fvchangesql = "SELECT Count(*) AS KPIValue FROM CLIENTS WHERE (CLIENTS.Deleted = 0) AND ((NOT(CLIENTS.FirstClassDate IS NULL)) OR (NOT(CLIENTS.FirstApptDate IS NULL))) AND Case WHEN CLIENTS.FirstApptDate IS NULL THEN CLIENTS.FirstClassDate ELSE CLIENTS.FirstApptDate END between dateadd(day,datediff(day,'"+startdate+"', '"+enddate+"')*-1, dateadd(day,-1,'"+startdate+"')"
+
+		fvchangeapi = ApiCall(SID,fvchangesql)
+		x =minidom.parseString(fvchangeapi.read())
+		FVChangeNum = 0
+		for row in x.getElementsByTagName("Row"):
+			try:
+				FVChangeNum=float(row.childNodes[0].childNodes[0].nodeValue)
+			except:
+				pass
+		if not FVChangeNum:
+			values['FVChange']=u"▲100%"
+			values['FVChangeColor']='(0, 170, 0)'
+		if TotalFVNum==FVChangeNum:
+			values['FVChange']=u"►0%"
+			values['FVChangeColor']='(255, 241, 13)'
+		elif FVChangeNum==0:
+			values['FVChange']=u"▲100%"
+			values['FVChangeColor']='(0, 170, 0)'
+		elif TotalFVNum==0:
+			values['FVChange']=u"▼100%"
+			values['FVChangeColor']='(255, 0, 0)'
+		else:
+			FVCalc = TotalFVNum-FVChangeNum
+			FVCalc = FVCalc/FVChangeNum
+			FVCalc = FVCalc*100
+
+			if FVCalc < 0:
+				values['FVChange']=u"▼"+format(abs(int(math.floor(FVCalc))), ",d")+"%"
+				values['FVChangeColor']='(255, 0, 0)'
+			elif FVCalc > 0:
+				values['FVChange']=u"▲"+format(abs(int(math.floor(FVCalc))), ",d")+"%"
+				values['FVChangeColor']='(0, 170, 0)'
 
 		#Sales YOY
 		Sales2011YOY = {'01/2011':0,'02/2011':0,'03/2011':0,'04/2011':0,'05/2011':0,'06/2011':0,'07/2011':0,'08/2011':0,'09/2011':0,'10/2011':0,'11/2011':0,'12/2011':0}
@@ -645,16 +991,11 @@ class Overview(webapp2.RequestHandler):
 
 
 		#Memberships YOY
-		Membership2011YOY = {'01/2011': 'null','02/2011': 'null','03/2011': 'null','04/2011': 'null','05/2011': 'null','06/2011': 'null','07/2011': 'null','08/2011': 'null','09/2011': 'null','10/2011': 'null','11/2011': 'null','12/2011': 'null'}
-
-		Membership2012YOY = {'01/2012': 'null','02/2012': 'null','03/2012': 'null','04/2012': 'null','05/2012': 'null','06/2012': 'null','07/2012': 'null','08/2012': 'null','09/2012': 'null','10/2012': 'null','11/2012': 'null','12/2012': 'null'}
-
-		Membership2013YOY = {'01/2013': 'null','02/2013': 'null','03/2013': 'null','04/2013': 'null','05/2013': 'null','06/2013': 'null','07/2013': 'null','08/2013': 'null','09/2013': 'null','10/2013': 'null','11/2013': 'null','12/2013': 'null'}
+		MembershipYOY = {'03/2012': 'null','04/2012': 'null','05/2012': 'null','06/2012': 'null','07/2012': 'null','08/2012': 'null','09/2012': 'null','10/2012': 'null','11/2012': 'null','12/2012': 'null','01/2013': 'null','02/2013': 'null'}
 
 
 		membership2011 = ''
-		membership2012 = ''
-		membership2013 = ''
+
 
 		
 		memyoysql ="SELECT RIGHT('00' + Cast(Datepart(month, tblAggregateKPI.kpidate) AS NVARCHAR(max)), 2) + '/' + Cast(Datepart(year, tblAggregateKPI.kpidate) AS NVARCHAR(max)) as date, kpivalue FROM tblAggregateKPI INNER JOIN (SELECT MAX(KPIDate) AS kpidate FROM tblAggregateKPI AS tblAggregateKPI_1 WHERE (KPITypeID = 15) AND (RefCatID = 1) GROUP BY CAST(DATEPART(month, KPIDate) AS NVARCHAR(MAX)) + '/' + CAST(DATEPART(year, KPIDate) AS NVARCHAR(MAX))) AS derivedtbl_1 ON  tblAggregateKPI.KPIDate = derivedtbl_1.kpidate WHERE (KPITypeID = 15) AND (RefCatID = 1) and tblAggregateKPI.kpidate between '1/1/2011' and getdate()"
@@ -664,24 +1005,15 @@ class Overview(webapp2.RequestHandler):
 		MembershipYear = ''
 		for row in x.getElementsByTagName("Row"):
 			try:
-				if str(row.childNodes[0].childNodes[0].nodeValue) in Membership2011YOY:
-					Membership2011YOY[str(row.childNodes[0].childNodes[0].nodeValue)]=str(int(math.floor(float(row.childNodes[1].childNodes[0].nodeValue))))
-				if str(row.childNodes[0].childNodes[0].nodeValue) in Membership2012YOY:
-					Membership2012YOY[str(row.childNodes[0].childNodes[0].nodeValue)]=str(int(math.floor(float(row.childNodes[1].childNodes[0].nodeValue))))
-				if  str(row.childNodes[0].childNodes[0].nodeValue) in Membership2013YOY:
-					Membership2013YOY[str(row.childNodes[0].childNodes[0].nodeValue)]=str(int(math.floor(float(row.childNodes[1].childNodes[0].nodeValue))))
+				if str(row.childNodes[0].childNodes[0].nodeValue) in MembershipYOY:
+					MembershipYOY[str(row.childNodes[0].childNodes[0].nodeValue)]=str(int(math.floor(float(row.childNodes[1].childNodes[0].nodeValue))))
 			except:
 				pass
-		for e,v in sorted(Membership2011YOY.items()):
+		for e,v in sorted(MembershipYOY.items()):
 			membership2011+=str(v)+","
-		for e,v in sorted(Membership2012YOY.items()):
-			membership2012+=str(v)+","
-		for e,v in sorted(Membership2013YOY.items()):
-			membership2013+=str(v)+","
 
 
-		values['Membership2011YOY']=membership2011[:-1]
-		values['Membership2012YOY']=membership2012[:-1]
-		values['Membership2013YOY']=membership2013[:-1]
+		values['MembershipYOY']=membership2011[:-1]
+
 
 		self.response.write(OverviewTemplate.render(values))
