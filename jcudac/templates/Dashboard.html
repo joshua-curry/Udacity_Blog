@@ -509,8 +509,11 @@ $(function () {
     <body>
     <script src="http://code.highcharts.com/highcharts.js"></script>
     <script src="http://code.highcharts.com/modules/exporting.js"></script>
+    <div class="alert alert-error" style = "display: none;">
+        <button type="button" class="close" data-dismiss="alert">×</button>
+        <b>There was an error while loading your data. Please retry</b> 
+    </div>
     <div class="row"></div>
-    </br>
 		<div>
 			<div style="text-align: right">
 				<form name="monthselector" action="./dashboard" method="POST">

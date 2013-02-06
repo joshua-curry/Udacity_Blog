@@ -9,51 +9,58 @@ import sys, httplib
 from xml.etree import ElementTree as ET
 from xml.dom import minidom
 import math
+import dashboard
 
 
 class Api(webapp2.RequestHandler):
 	def get(self):
-		startdate='1/15/2013'
-		startdate='2/3/2013'
-		template = '''<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:_5="http://clients.mindbodyonline.com/api/0_5">
-						<soapenv:Header/>
-						<soapenv:Body>
-						  <_5:SelectDataXml>
-						     <_5:Request>
-						        <_5:SourceCredentials>
-						           <_5:SourceName>JCURRY</_5:SourceName>
-						           <_5:Password>149966a</_5:Password>
-						           <_5:SiteIDs>
-						              <_5:int>-111</_5:int>
-						           </_5:SiteIDs>
-						        </_5:SourceCredentials>
-						        <_5:UserCredentials>
-						           <_5:Username/>
-						           <_5:Password/>
-						        </_5:UserCredentials>
-						        <_5:XMLDetail>Basic</_5:XMLDetail>
-						        <_5:PageSize>10000</_5:PageSize>
-						        <_5:CurrentPageIndex>0</_5:CurrentPageIndex>
-						        <_5:SelectSql>SELECT SUM(tblSDPayments.SDPaymentAmount - tblSDPayments.ItemTax1 - tblSDPayments.ItemTax2 - tblSDPayments.ItemTax3 - tblSDPayments.ItemTax4 - tblSDPayments.ItemTax5) AS KDPValue FROM [Sales Details] INNER JOIN Sales ON [Sales Details].SaleID = Sales.SaleID INNER JOIN tblPayments ON Sales.SaleID = tblPayments.SaleID INNER JOIN tblSDPayments ON [Sales Details].SDID = tblSDPayments.SDID AND tblPayments.PaymentID = tblSDPayments.PaymentID INNER JOIN [Payment Types] ON tblPayments.PaymentMethod = [Payment Types].Item# WHERE (Sales.SaleDate BETWEEN dateadd(day,datediff(day,'1/15/2013', '2/3/2013'), '1/15/2013') AND '1/15/2013') AND ([Payment Types].CashEQ = 1) AND ([Sales Details].CategoryID != 21)</_5:SelectSql>
-						     </_5:Request>
-						  </_5:SelectDataXml>
-						</soapenv:Body>
-						</soapenv:Envelope>'''
+		startdate='12/1/2012'
+		enddate='12/31/2012'
+		# template = '''<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:_5="http://clients.mindbodyonline.com/api/0_5">
+		# 				<soapenv:Header/>
+		# 				<soapenv:Body>
+		# 				  <_5:SelectDataXml>
+		# 				     <_5:Request>
+		# 				        <_5:SourceCredentials>
+		# 				           <_5:SourceName>JCURRY</_5:SourceName>
+		# 				           <_5:Password>149966a</_5:Password>
+		# 				           <_5:SiteIDs>
+		# 				              <_5:int>-111</_5:int>
+		# 				           </_5:SiteIDs>
+		# 				        </_5:SourceCredentials>
+		# 				        <_5:UserCredentials>
+		# 				           <_5:Username/>
+		# 				           <_5:Password/>
+		# 				        </_5:UserCredentials>
+		# 				        <_5:XMLDetail>Basic</_5:XMLDetail>
+		# 				        <_5:PageSize>10000</_5:PageSize>
+		# 				        <_5:CurrentPageIndex>0</_5:CurrentPageIndex>
+		# 				        <_5:SelectSql>SELECT SUM(case when Sales.SaleDate BETWEEN '"+startdate+"' AND '"+enddate+"' then tblSDPayments.SDPaymentAmount - tblSDPayments.ItemTax1 - tblSDPayments.ItemTax2 - tblSDPayments.ItemTax3 - tblSDPayments.ItemTax4 - tblSDPayments.ItemTax5 end) AS KDPValue, SUM(case when Sales.SaleDate BETWEEN dateadd(day,datediff(day,'"+startdate+"', '"+enddate+"')*-1, dateadd(day,-1,'"+startdate+"')) AND '"+startdate+"' then tblSDPayments.SDPaymentAmount - tblSDPayments.ItemTax1 - tblSDPayments.ItemTax2 - tblSDPayments.ItemTax3 - tblSDPayments.ItemTax4 - tblSDPayments.ItemTax5 end) AS ChangeValue FROM [Sales Details] INNER JOIN Sales ON [Sales Details].SaleID = Sales.SaleID INNER JOIN tblPayments ON Sales.SaleID = tblPayments.SaleID INNER JOIN tblSDPayments ON [Sales Details].SDID = tblSDPayments.SDID AND tblPayments.PaymentID = tblSDPayments.PaymentID INNER JOIN [Payment Types] ON tblPayments.PaymentMethod = [Payment Types].Item# WHERE (Sales.SaleDate BETWEEN dateadd(day,datediff(day,'"+startdate+"', '"+enddate+"')*-1, dateadd(day,-1,'"+startdate+"')) AND '"+enddate+"') AND ([Payment Types].CashEQ = 1) AND ([Sales Details].CategoryID != 21)</_5:SelectSql>
+		# 				     </_5:Request>
+		# 				  </_5:SelectDataXml>
+		# 				</soapenv:Body>
+		# 				</soapenv:Envelope>'''
 		
-		headers = {}
-		#headers['Accept-Encoding']= 'xml'
-		headers['Content-Type']= 'text/xml;charset=UTF-8'
-		headers['SOAPAction']= "http://clients.mindbodyonline.com/api/0_5/SelectDataXml"
-		headers['Content-Length']= '926'
-		headers['Host']= 'clients.mindbodyonline.com'
+		# headers = {}
+		# #headers['Accept-Encoding']= 'xml'
+		# headers['Content-Type']= 'text/xml;charset=UTF-8'
+		# headers['SOAPAction']= "http://clients.mindbodyonline.com/api/0_5/SelectDataXml"
+		# headers['Content-Length']= '926'
+		# headers['Host']= 'clients.mindbodyonline.com'
 
-		url = 'http://clients.mindbodyonline.com/api/0_5/DataService.asmx'
-		data = template
-		request = urllib2.Request(url,data,headers)
-		response = urllib2.urlopen(request)
-		x = minidom.parseString(response.read())
+		# url = 'http://clients.mindbodyonline.com/api/0_5/DataService.asmx'
+		# data = template
+		# request = urllib2.Request(url,data,headers)
+		# response = urllib2.urlopen(request)
+
+
+		salessql = "SELECT isnull(SUM(case when Sales.SaleDate BETWEEN '"+startdate+"' AND '"+enddate+"' then tblSDPayments.SDPaymentAmount - tblSDPayments.ItemTax1 - tblSDPayments.ItemTax2 - tblSDPayments.ItemTax3 - tblSDPayments.ItemTax4 - tblSDPayments.ItemTax5 end),0) AS KDPValue, SUM(case when Sales.SaleDate BETWEEN dateadd(day,datediff(day,'"+startdate+"', '"+enddate+"')*-1, dateadd(day,-1,'"+startdate+"')) AND '"+startdate+"' then tblSDPayments.SDPaymentAmount - tblSDPayments.ItemTax1 - tblSDPayments.ItemTax2 - tblSDPayments.ItemTax3 - tblSDPayments.ItemTax4 - tblSDPayments.ItemTax5 end) AS ChangeValue FROM [Sales Details] INNER JOIN Sales ON [Sales Details].SaleID = Sales.SaleID INNER JOIN tblPayments ON Sales.SaleID = tblPayments.SaleID INNER JOIN tblSDPayments ON [Sales Details].SDID = tblSDPayments.SDID AND tblPayments.PaymentID = tblSDPayments.PaymentID INNER JOIN [Payment Types] ON tblPayments.PaymentMethod = [Payment Types].Item# WHERE (Sales.SaleDate BETWEEN dateadd(day,datediff(day,'"+startdate+"', '"+enddate+"')*-1, dateadd(day,-1,'"+startdate+"')) AND '"+enddate+"') AND ([Payment Types].CashEQ = 1) AND ([Sales Details].CategoryID != 21)"
+
+		salesapi = dashboard.ApiCall(-4227,salessql)
+		x = minidom.parseString(salesapi.read())
 		#self.response.write(dir(x))
-		self.response.write(x.toprettyxml())
+		self.response.write(x.toxml())
+		#self.response.write(x.toprettyxml())
 		#self.response.write(x.getElementsByTagName("clientid")[0].childNodes[0].nodeValue)
 		#self.response.write(dir(x.getElementsByTagName("clientid")))
 		#self.response.write(x.getElementsByTagName("Row"))
