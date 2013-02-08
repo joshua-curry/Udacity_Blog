@@ -120,36 +120,33 @@ def GenerateGraphData(SID,startdate,enddate,localization):
 
 
 	#Sales
-	salessql = "SELECT isnull(SUM(case when Sales.SaleDate BETWEEN '"+startdate+"' AND '"+enddate+"' then tblSDPayments.SDPaymentAmount - tblSDPayments.ItemTax1 - tblSDPayments.ItemTax2 - tblSDPayments.ItemTax3 - tblSDPayments.ItemTax4 - tblSDPayments.ItemTax5 end),0) AS KDPValue, isnull(SUM(case when Sales.SaleDate BETWEEN dateadd(day,datediff(day,'"+startdate+"', '"+enddate+"')*-1, dateadd(day,-1,'"+startdate+"')) AND '"+startdate+"' then tblSDPayments.SDPaymentAmount - tblSDPayments.ItemTax1 - tblSDPayments.ItemTax2 - tblSDPayments.ItemTax3 - tblSDPayments.ItemTax4 - tblSDPayments.ItemTax5 end),0) AS ChangeValue FROM [Sales Details] INNER JOIN Sales ON [Sales Details].SaleID = Sales.SaleID INNER JOIN tblPayments ON Sales.SaleID = tblPayments.SaleID INNER JOIN tblSDPayments ON [Sales Details].SDID = tblSDPayments.SDID AND tblPayments.PaymentID = tblSDPayments.PaymentID INNER JOIN [Payment Types] ON tblPayments.PaymentMethod = [Payment Types].Item# WHERE (Sales.SaleDate BETWEEN dateadd(day,datediff(day,'"+startdate+"', '"+enddate+"')*-1, dateadd(day,-1,'"+startdate+"')) AND '"+enddate+"') AND ([Payment Types].CashEQ = 1) AND ([Sales Details].CategoryID != 21)"
+	salessql = "SELECT isnull(SUM(case when Sales.SaleDate BETWEEN '"+startdate+"' AND '"+enddate+"' then tblSDPayments.SDPaymentAmount - tblSDPayments.ItemTax1 - tblSDPayments.ItemTax2 - tblSDPayments.ItemTax3 - tblSDPayments.ItemTax4 - tblSDPayments.ItemTax5 end),0) AS KDPValue, isnull(SUM(case when Sales.SaleDate BETWEEN dateadd(day,datediff(day,'"+startdate+"', '"+enddate+"')*-1, dateadd(day,-1,'"+startdate+"')) AND '"+startdate+"' then tblSDPayments.SDPaymentAmount - tblSDPayments.ItemTax1 - tblSDPayments.ItemTax2 - tblSDPayments.ItemTax3 - tblSDPayments.ItemTax4 - tblSDPayments.ItemTax5 end),0) AS ChangeValue, isnull(SUM(case when Sales.SaleDate BETWEEN '"+startdate+"' AND '"+enddate+"' and [sales details].categoryid &gt; 25 then tblSDPayments.SDPaymentAmount - tblSDPayments.ItemTax1 - tblSDPayments.ItemTax2 - tblSDPayments.ItemTax3 - tblSDPayments.ItemTax4 - tblSDPayments.ItemTax5 end),0) AS ProdValue, isnull(SUM(case when Sales.SaleDate BETWEEN dateadd(day,datediff(day,'"+startdate+"', '"+enddate+"')*-1, dateadd(day,-1,'"+startdate+"')) AND '"+startdate+"' and [sales details].categoryid &gt; 25 then tblSDPayments.SDPaymentAmount - tblSDPayments.ItemTax1 - tblSDPayments.ItemTax2 - tblSDPayments.ItemTax3 - tblSDPayments.ItemTax4 - tblSDPayments.ItemTax5 end),0) AS ProdChangeValue FROM [Sales Details] INNER JOIN Sales ON [Sales Details].SaleID = Sales.SaleID INNER JOIN tblPayments ON Sales.SaleID = tblPayments.SaleID INNER JOIN tblSDPayments ON [Sales Details].SDID = tblSDPayments.SDID AND tblPayments.PaymentID = tblSDPayments.PaymentID INNER JOIN [Payment Types] ON tblPayments.PaymentMethod = [Payment Types].Item# WHERE (Sales.SaleDate BETWEEN dateadd(day,datediff(day,'"+startdate+"', '"+enddate+"')*-1, dateadd(day,-1,'"+startdate+"')) AND '"+enddate+"') AND ([Payment Types].CashEQ = 1) AND ([Sales Details].CategoryID != 21)"
 
 	salesapi = ApiCall(SID,salessql)
 	x =minidom.parseString(salesapi.read())
 	TotalSales = ''
 	TotalSalesNum=0
 	SalesChangeNum = 0
+	ProductSales = ''
+	TotalProdNum=0
+	ProdChangeNum = 0
 	for row in x.getElementsByTagName("Row"):
 		try:
 			TotalSales+=format(int(math.floor(float(row.childNodes[0].childNodes[0].nodeValue))), ",d")
 			TotalSalesNum=float(row.childNodes[0].childNodes[0].nodeValue)
 			SalesChangeNum=float(row.childNodes[1].childNodes[0].nodeValue)
+			ProductSales+=format(int(math.floor(float(row.childNodes[2].childNodes[0].nodeValue))), ",d")
+			TotalProdNum=int(math.floor(float(row.childNodes[2].childNodes[0].nodeValue)))
+			ProdChangeNum=float(row.childNodes[3].childNodes[0].nodeValue)
 		except:
 			pass
 	if TotalSales == '':
 		TotalSales='0'
+	if ProductSales == '':
+	 	ProductSales='0'
 	values['TotalSales']='$'+TotalSales
-
-
-	# #Sales Change
-	# saleschangesql = "SELECT SUM(tblSDPayments.SDPaymentAmount - tblSDPayments.ItemTax1 - tblSDPayments.ItemTax2 - tblSDPayments.ItemTax3 - tblSDPayments.ItemTax4 - tblSDPayments.ItemTax5) AS KDPValue FROM [Sales Details] INNER JOIN Sales ON [Sales Details].SaleID = Sales.SaleID INNER JOIN tblPayments ON Sales.SaleID = tblPayments.SaleID INNER JOIN tblSDPayments ON [Sales Details].SDID = tblSDPayments.SDID AND tblPayments.PaymentID = tblSDPayments.PaymentID INNER JOIN [Payment Types] ON tblPayments.PaymentMethod = [Payment Types].Item# WHERE (Sales.SaleDate BETWEEN dateadd(day,datediff(day,'"+startdate+"', '"+enddate+"')*-1, dateadd(day,-1,'"+startdate+"')) AND '"+startdate+"') AND ([Payment Types].CashEQ = 1) AND ([Sales Details].CategoryID != 21)"
-
-	# saleschangeapi = ApiCall(SID,saleschangesql)
-	# x =minidom.parseString(saleschangeapi.read())
-	# SalesChangeNum = 0
-	# for row in x.getElementsByTagName("Row"):
-	# 	try:
-	# 		SalesChangeNum=float(row.childNodes[0].childNodes[0].nodeValue)
-	# 	except:
-	# 		pass
+	values['ProductSales']='$'+ProductSales
+	
 	if not SalesChangeNum:
 		values['SalesChange']=u"▲100%"
 		values['SalesChangeColor']='(0, 170, 0)'
@@ -174,35 +171,35 @@ def GenerateGraphData(SID,startdate,enddate,localization):
 			values['SalesChange']=u"▲"+format(abs(int(math.floor(SalesCalc))), ",d")+"%"
 			values['SalesChangeColor']='(0, 170, 0)'
 
-	#Product Sales
-	prodsql = "SELECT SUM(tblSDPayments.SDPaymentAmount - tblSDPayments.ItemTax1 - tblSDPayments.ItemTax2 - tblSDPayments.ItemTax3 - tblSDPayments.ItemTax4 - tblSDPayments.ItemTax5) AS KDPValue FROM [Sales Details] INNER JOIN Sales ON [Sales Details].SaleID = Sales.SaleID INNER JOIN tblPayments ON Sales.SaleID = tblPayments.SaleID INNER JOIN tblSDPayments ON [Sales Details].SDID = tblSDPayments.SDID AND tblPayments.PaymentID = tblSDPayments.PaymentID INNER JOIN [Payment Types] ON tblPayments.PaymentMethod = [Payment Types].Item# WHERE (Sales.SaleDate BETWEEN '"+startdate+"' AND '"+enddate+"') AND ([Payment Types].CashEQ = 1) AND ([Sales Details].CategoryID != 21) and [sales details].categoryid >25"
+	# #Product Sales
+	# prodsql = "SELECT SUM(tblSDPayments.SDPaymentAmount - tblSDPayments.ItemTax1 - tblSDPayments.ItemTax2 - tblSDPayments.ItemTax3 - tblSDPayments.ItemTax4 - tblSDPayments.ItemTax5) AS KDPValue FROM [Sales Details] INNER JOIN Sales ON [Sales Details].SaleID = Sales.SaleID INNER JOIN tblPayments ON Sales.SaleID = tblPayments.SaleID INNER JOIN tblSDPayments ON [Sales Details].SDID = tblSDPayments.SDID AND tblPayments.PaymentID = tblSDPayments.PaymentID INNER JOIN [Payment Types] ON tblPayments.PaymentMethod = [Payment Types].Item# WHERE (Sales.SaleDate BETWEEN '"+startdate+"' AND '"+enddate+"') AND ([Payment Types].CashEQ = 1) AND ([Sales Details].CategoryID != 21) and [sales details].categoryid >25"
 	
-	prodapi = ApiCall(SID,prodsql)
-	x =minidom.parseString(prodapi.read())
-	ProductSales = ''
-	TotalProdNum=0
-	for row in x.getElementsByTagName("Row"):
-		try:
-			ProductSales+=format(int(math.floor(float(row.childNodes[0].childNodes[0].nodeValue))), ",d")
-			TotalProdNum=int(math.floor(float(row.childNodes[0].childNodes[0].nodeValue)))
-		except:
-			pass
-	if ProductSales == '':
-		ProductSales='0'
-	values['ProductSales']='$'+ProductSales
+	# prodapi = ApiCall(SID,prodsql)
+	# x =minidom.parseString(prodapi.read())
+	# ProductSales = ''
+	# TotalProdNum=0
+	# for row in x.getElementsByTagName("Row"):
+	# 	try:
+	# 		ProductSales+=format(int(math.floor(float(row.childNodes[0].childNodes[0].nodeValue))), ",d")
+	# 		TotalProdNum=int(math.floor(float(row.childNodes[0].childNodes[0].nodeValue)))
+	# 	except:
+	# 		pass
+	# if ProductSales == '':
+	# 	ProductSales='0'
+	# values['ProductSales']='$'+ProductSales
 
 
-	#Prod Change
-	prodchangesql = "SELECT SUM(tblSDPayments.SDPaymentAmount - tblSDPayments.ItemTax1 - tblSDPayments.ItemTax2 - tblSDPayments.ItemTax3 - tblSDPayments.ItemTax4 - tblSDPayments.ItemTax5) AS KDPValue FROM [Sales Details] INNER JOIN Sales ON [Sales Details].SaleID = Sales.SaleID INNER JOIN tblPayments ON Sales.SaleID = tblPayments.SaleID INNER JOIN tblSDPayments ON [Sales Details].SDID = tblSDPayments.SDID AND tblPayments.PaymentID = tblSDPayments.PaymentID INNER JOIN [Payment Types] ON tblPayments.PaymentMethod = [Payment Types].Item# WHERE (Sales.SaleDate BETWEEN dateadd(day,datediff(day,'"+startdate+"', '"+enddate+"')*-1, dateadd(day,-1,'"+startdate+"')) AND '"+startdate+"') AND ([Payment Types].CashEQ = 1) AND ([Sales Details].CategoryID != 21) and [sales details].categoryid >25"
+	# #Prod Change
+	# prodchangesql = "SELECT SUM(tblSDPayments.SDPaymentAmount - tblSDPayments.ItemTax1 - tblSDPayments.ItemTax2 - tblSDPayments.ItemTax3 - tblSDPayments.ItemTax4 - tblSDPayments.ItemTax5) AS KDPValue FROM [Sales Details] INNER JOIN Sales ON [Sales Details].SaleID = Sales.SaleID INNER JOIN tblPayments ON Sales.SaleID = tblPayments.SaleID INNER JOIN tblSDPayments ON [Sales Details].SDID = tblSDPayments.SDID AND tblPayments.PaymentID = tblSDPayments.PaymentID INNER JOIN [Payment Types] ON tblPayments.PaymentMethod = [Payment Types].Item# WHERE (Sales.SaleDate BETWEEN dateadd(day,datediff(day,'"+startdate+"', '"+enddate+"')*-1, dateadd(day,-1,'"+startdate+"')) AND '"+startdate+"') AND ([Payment Types].CashEQ = 1) AND ([Sales Details].CategoryID != 21) and [sales details].categoryid >25"
 
-	prodchangeapi = ApiCall(SID,prodchangesql)
-	x =minidom.parseString(prodchangeapi.read())
-	ProdChangeNum = 0
-	for row in x.getElementsByTagName("Row"):
-		try:
-			ProdChangeNum=float(row.childNodes[0].childNodes[0].nodeValue)
-		except:
-			pass
+	# prodchangeapi = ApiCall(SID,prodchangesql)
+	# x =minidom.parseString(prodchangeapi.read())
+	# ProdChangeNum = 0
+	# for row in x.getElementsByTagName("Row"):
+	# 	try:
+	# 		ProdChangeNum=float(row.childNodes[0].childNodes[0].nodeValue)
+	# 	except:
+	# 		pass
 	if not ProdChangeNum:
 		values['ProdChange']=u"▲100%"
 		values['ProdChangeColor']='(0, 170, 0)'
