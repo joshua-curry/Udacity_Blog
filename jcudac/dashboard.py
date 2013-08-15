@@ -30,16 +30,12 @@ def ApiCall(clientid,sql):
 	template+='</_5:int>'
 	template+='					           </_5:SiteIDs>'
 	template+='					        </_5:SourceCredentials>'
-	template+='					        <_5:UserCredentials>'
-	template+='					           <_5:Username/>'
-	template+='					           <_5:Password/>'
-	template+='					        </_5:UserCredentials>'
 	template+='					        <_5:XMLDetail>Basic</_5:XMLDetail>'
 	template+='					        <_5:PageSize>10000</_5:PageSize>'
 	template+='					        <_5:CurrentPageIndex>0</_5:CurrentPageIndex>'
-	template+='					        <_5:SelectSql>'
+	template+='					        <_5:SelectSql><![CDATA['
 	template+= sql 
-	template+='</_5:SelectSql>'
+	template+=']]></_5:SelectSql>'
 	template+='					     </_5:Request>'
 	template+='					  </_5:SelectDataXml>'
 	template+='					</soapenv:Body>'
@@ -467,7 +463,7 @@ def GenerateGraphData(SID,startdate,enddate,localization):
 		sales2013 = ''
 
 		
-		syoysql ="SELECT right('00'+cast(datepart(month,Sales.SaleDate) as nvarchar(max)),2) + '/' + cast(datepart(year,Sales.SaleDate) as nvarchar(max)) as date, SUM(tblSDPayments.SDPaymentAmount - tblSDPayments.ItemTax1 - tblSDPayments.ItemTax2 - tblSDPayments.ItemTax3 - tblSDPayments.ItemTax4 - tblSDPayments.ItemTax5) AS KDPValue FROM [Sales Details] INNER JOIN Sales ON [Sales Details].SaleID = Sales.SaleID INNER JOIN tblPayments ON Sales.SaleID = tblPayments.SaleID INNER JOIN tblSDPayments ON [Sales Details].SDID = tblSDPayments.SDID AND tblPayments.PaymentID = tblSDPayments.PaymentID INNER JOIN [Payment Types] ON tblPayments.PaymentMethod = [Payment Types].Item# WHERE (Sales.SaleDate BETWEEN '1/1/2011' AND '2/28/2013') AND ([Payment Types].CashEQ = 1) AND ([Sales Details].CategoryID != 21) GROUP BY right('00'+cast(datepart(month,Sales.SaleDate) as nvarchar(max)),2) + '/' + cast(datepart(year,Sales.SaleDate) as nvarchar(max))"
+		syoysql ="SELECT right('00'+cast(datepart(month,Sales.SaleDate) as nvarchar(max)),2) + '/' + cast(datepart(year,Sales.SaleDate) as nvarchar(max)) as date, SUM(tblSDPayments.SDPaymentAmount - tblSDPayments.ItemTax1 - tblSDPayments.ItemTax2 - tblSDPayments.ItemTax3 - tblSDPayments.ItemTax4 - tblSDPayments.ItemTax5) AS KDPValue FROM [Sales Details] INNER JOIN Sales ON [Sales Details].SaleID = Sales.SaleID INNER JOIN tblPayments ON Sales.SaleID = tblPayments.SaleID INNER JOIN tblSDPayments ON [Sales Details].SDID = tblSDPayments.SDID AND tblPayments.PaymentID = tblSDPayments.PaymentID INNER JOIN [Payment Types] ON tblPayments.PaymentMethod = [Payment Types].Item# WHERE (Sales.SaleDate BETWEEN '1/1/2011' AND cast(getdate() as date)) AND ([Payment Types].CashEQ = 1) AND ([Sales Details].CategoryID != 21) GROUP BY right('00'+cast(datepart(month,Sales.SaleDate) as nvarchar(max)),2) + '/' + cast(datepart(year,Sales.SaleDate) as nvarchar(max))"
 		
 		syoy = ApiCall(SID,syoysql)
 		x =minidom.parseString(syoy.read())
@@ -511,7 +507,7 @@ def GenerateGraphData(SID,startdate,enddate,localization):
 		online2013 = ''
 
 		
-		oyoysql ="SELECT RIGHT('00' + Cast(Datepart(month, [VISIT DATA].ClassDate) AS NVARCHAR(max)), 2) + '/' + Cast(Datepart(year, [VISIT DATA].ClassDate) AS NVARCHAR(max)) as date, COUNT(*) AS KPIValue FROM [VISIT DATA] INNER JOIN tblTypeGroup ON [VISIT DATA].TypeGroup = tblTypeGroup.TypeGroupID WHERE (([VISIT DATA].ClassDate between '1/1/2011' and '2/28/2013') OR ([VISIT DATA].RequestDate between '1/1/2011' and '2/28/2013'))  AND ([VISIT DATA].Cancelled = 0) AND ([VISIT DATA].Missed = 0) AND ([VISIT DATA].WebScheduler = 1) AND (NOT ([VISIT DATA].TypeGroup IS NULL)) AND (NOT ([VISIT DATA].ClassDate IS NULL)) group by RIGHT('00' + Cast(Datepart(month, [VISIT DATA].ClassDate) AS NVARCHAR(max)), 2) + '/' + Cast(Datepart(year, [VISIT DATA].ClassDate) AS NVARCHAR(max))"
+		oyoysql ="SELECT RIGHT('00' + Cast(Datepart(month, [VISIT DATA].ClassDate) AS NVARCHAR(max)), 2) + '/' + Cast(Datepart(year, [VISIT DATA].ClassDate) AS NVARCHAR(max)) as date, COUNT(*) AS KPIValue FROM [VISIT DATA] INNER JOIN tblTypeGroup ON [VISIT DATA].TypeGroup = tblTypeGroup.TypeGroupID WHERE (([VISIT DATA].ClassDate between '1/1/2011' and cast(getdate() as date)) OR ([VISIT DATA].RequestDate between '1/1/2011' and cast(getdate() as date)))  AND ([VISIT DATA].Cancelled = 0) AND ([VISIT DATA].Missed = 0) AND ([VISIT DATA].WebScheduler = 1) AND (NOT ([VISIT DATA].TypeGroup IS NULL)) AND (NOT ([VISIT DATA].ClassDate IS NULL)) group by RIGHT('00' + Cast(Datepart(month, [VISIT DATA].ClassDate) AS NVARCHAR(max)), 2) + '/' + Cast(Datepart(year, [VISIT DATA].ClassDate) AS NVARCHAR(max))"
 		
 		oyoy = ApiCall(SID,oyoysql)
 		x =minidom.parseString(oyoy.read())
@@ -582,7 +578,7 @@ class Overview(webapp2.RequestHandler):
 
 		SID = -4227
 		startdate=str(now.month)+'/1/'+str(now.year)
-		enddate=str(now.month)+'/'+str(now.day)+'/'+str(now.year)
+		enddate=str(now.month)+'/'+str(now.day-1)+'/'+str(now.year)
 
 		# values['SID'] = SID
 		# values['startdate'] = startdate
